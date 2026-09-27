@@ -21,6 +21,17 @@ def _georef_of(tile, georef):
     return georef
 
 
+def query_features(query_bgr: np.ndarray, params: dict) -> tuple:
+    max_long = int(params.get("query_max_long_edge", 768))
+    h, w = query_bgr.shape[:2]
+    sc = min(1.0, max_long / max(h, w))
+    if sc < 1.0:
+        query_bgr = cv2.resize(query_bgr, (int(w * sc), int(h * sc)), interpolation=cv2.INTER_AREA)
+    qg = cv2.cvtColor(query_bgr, cv2.COLOR_BGR2GRAY)
+    kp_q, des_q = cv2.AKAZE_create().detectAndCompute(qg, None)
+    return qg.shape[:2], kp_q, des_q
+
+
 def akaze_rerank(
     query_bgr: np.ndarray,
     sat,
@@ -28,21 +39,18 @@ def akaze_rerank(
     cand_indices: list[int],
     georef: tuple[float, float, float, float],
     params: dict,
+    qfeat: tuple | None = None,
+    tile_cache: dict | None = None,
 ) -> dict:
     """
     Homography is used only as a 2D image-plane alignment prior (oblique UAV vs ortho map).
     No intrinsics / PnP — not claiming metric footprint GT.
+    qfeat / tile_cache only skip recomputation; results are identical without them.
     """
     west, north, sx, sy = georef
-    max_long = int(params.get("query_max_long_edge", 768))
-    h, w = query_bgr.shape[:2]
-    sc = min(1.0, max_long / max(h, w))
-    if sc < 1.0:
-        query_bgr = cv2.resize(query_bgr, (int(w * sc), int(h * sc)), interpolation=cv2.INTER_AREA)
-    qg = cv2.cvtColor(query_bgr, cv2.COLOR_BGR2GRAY)
+    (qh, qw), kp_q, des_q = qfeat if qfeat is not None else query_features(query_bgr, params)
 
     akaze = cv2.AKAZE_create()
-    kp_q, des_q = akaze.detectAndCompute(qg, None)
     ratio = float(params.get("ratio_test", 0.75))
     min_inl = int(params.get("min_inliers", 12))
     ransac_th = float(params.get("ransac_reproj_threshold_px", 3.0))
@@ -63,8 +71,14 @@ def akaze_rerank(
 
     for ti in cand_indices:
         t = tiles[int(ti)]
-        pg = cv2.cvtColor(read_tile_rgb(_sat_arr(sat, t), t), cv2.COLOR_RGB2GRAY)
-        kp_t, des_t = akaze.detectAndCompute(pg, None)
+        key = (int(getattr(t, "raster_id", 0)), t.tile_id)
+        if tile_cache is not None and key in tile_cache:
+            kp_t, des_t = tile_cache[key]
+        else:
+            pg = cv2.cvtColor(read_tile_rgb(_sat_arr(sat, t), t), cv2.COLOR_RGB2GRAY)
+            kp_t, des_t = akaze.detectAndCompute(pg, None)
+            if tile_cache is not None:
+                tile_cache[key] = (kp_t, des_t)
         if des_t is None:
             continue
         pairs = bf.knnMatch(des_q, des_t, k=2)
@@ -85,7 +99,6 @@ def akaze_rerank(
             pred_lat, pred_lon = t.center_lat, t.center_lon
             used_h = False
             if H is not None and inliers >= min_inl:
-                qh, qw = qg.shape[:2]
                 pt = np.array([[[qw / 2, qh / 2]]], dtype=np.float32)
                 mapped = cv2.perspectiveTransform(pt, H)[0, 0]
                 fr = t.row0 + mapped[1]

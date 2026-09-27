@@ -1,0 +1,82 @@
+schema_version: preregistration_v1
+status: frozen_before_labels
+purpose: >
+  Fixes every threshold, distribution and decision rule for Stages 4-9 before any
+  multi-region outcome is generated. Values here are never changed after seeing
+  test-region results; any change is logged under deviations with a date and reason.
+
+inputs:
+  splits: configs/splits_v1.json
+  frozen_matcher: configs/matcher_stage3b_frozen.yaml
+  matcher_id: dinov2_c2f
+  localizer_dev_regions: ['03']
+
+tolerances_m:
+  primary: 100
+  secondary: [25, 50]
+  rationale: >
+    Stage 2D found an unexplained ~97-105 m NCC shift between CSV centres and map
+    content, so ground truth is not trusted below ~100 m. 25/50 m are reported
+    but not used for go/no-go decisions.
+
+search_window:
+  radii_m: [100, 300, 1000]
+  membership: tile centre within radius of the prior centre (local equirectangular metres)
+  empty_window_outcome: rejected
+  note: >
+    Tiles are 1024 px (~300 m) with 512 px stride (~150 m). The window can exclude
+    the true position; those attempts are kept.
+
+prior_offset:
+  distribution: isotropic 2D Gaussian, per-axis sigma = 0.5 * radius
+  expected_truth_outside_window: 0.135
+  offsets_per_frame_per_radius: 3
+  seed: 20260927
+  seeding: sha256(seed|region|filename|radius|k) -> numpy default_rng; order independent
+  ground_truth_role: centres the prior for labelling and scores error only
+
+outcomes:
+  accepted_correct: accepted and geodesic error <= tolerance
+  rejected: not accepted (includes empty window)
+  accepted_incorrect: accepted and geodesic error > tolerance
+
+accept_rule:
+  candidates:
+    any_output: every non-empty prediction is accepted
+    homography_12: used_homography == 1 and fine_inliers >= 12
+    homography_20: used_homography == 1 and fine_inliers >= 20
+    homography_30: used_homography == 1 and fine_inliers >= 30
+  selection_data: region 03 tune_queries from configs/stage3b_splits.yaml, windowed attempts at all radii
+  selection_criterion: >
+    Highest precision (accepted_correct / accepted) at the primary tolerance among
+    candidates with >= 5 accepted_correct attempts; ties -> more accepted_correct.
+  selected: homography_12
+  selection_evidence: >
+    reports/accept_rule_selection.md (2026-09-27). Region 03 tune set, 216 windowed
+    attempts / 24 frames. homography_12: 7 accepted, 7 correct, 0 incorrect
+    (precision 1.0, accepted-correct rate 0.032). any_output: precision 0.50.
+    homography_20/30: 0 accepted.
+
+stage4_checks:
+  zero_offset_test: {n_frames: 5, radius_m: 100, offset: zero}
+  negative_control: >
+    Heading is not an input (rotation bank, csv_heading_used=false), so the plan's
+    wrong-heading check is replaced by a wrong-location control: prior centre moved
+    2000 m from truth with radius 100 m. Accepted-correct must be 0.
+  determinism: two runs, identical rows excluding runtime_s
+  resume: killed run resumed gives identical rows and no duplicate keys
+
+stage5_go:
+  prevalence_band: [0.15, 0.85]
+  prevalence_definition: accepted_correct rate over all attempts at the primary tolerance, pooled
+  monotonic_check: accepted_correct rate must not increase with offset distance bins
+
+stage8:
+  ece_bins: 10 equal-width
+  bootstrap_unit: region group
+
+stage9:
+  loss_of_localization: true error > 200 m for >= 10 consecutive frames
+  destination_radius: defined separately before Stage 9 (not needed for maintenance metrics)
+
+deviations: []

@@ -1,0 +1,31 @@
+{
+  "started_at": "2026-09-27T01:48:14.976112+00:00",
+  "git_commit": "1f08dd43698d1852a44e17ca64046aa866723b27",
+  "git_dirty_scripts_or_configs": true,
+  "config_sha256": "5083e3b70c870ca8b3dea50760509af7ff22df3aafc67b0a278a2469a468744f",
+  "prereg_sha256": "d5387b1527d92c217bd0fefdfbc950596f33c81c5d5ab5ab7cc8d340035ba7d3",
+  "splits_sha256": "b46407a738e649ed994c4fe6382110d065282f8ecc882ffddd4fad35875553b7",
+  "accept_rule": null,
+  "args": {
+    "set": "tune",
+    "out": "results/stage4/tune",
+    "resume": false,
+    "radii": null,
+    "k": null,
+    "zero_offset": false,
+    "control_offset_m": null,
+    "n_frames": 5,
+    "regions": "all",
+    "per_region": 10,
+    "select_seed": 20260927,
+    "max_frames": null
+  },
+  "radii_m": [
+    100,
+    300,
+    1000
+  ],
+  "offsets_per_radius": 3,
+  "variant": "prior",
+  "n_frames": 24
+}

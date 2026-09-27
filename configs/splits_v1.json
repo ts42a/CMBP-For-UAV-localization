@@ -1,0 +1,2203 @@
+{
+  "created_at": "2026-09-27T01:44:20.669020+00:00",
+  "groups_source": "reports/independent_region_groups.csv",
+  "groups_source_sha256": "426a771165c8f37b5fce03d55bc3d13e7d9491c0aa5faf59f0b1c780a3f9293e",
+  "localizer_dev_note": "Matcher dinov2_c2f was tuned on region 03. Folds whose test group contains 03 are flagged localizer_dev_contaminated and reported separately.",
+  "localizer_dev_regions": [
+    "03"
+  ],
+  "manifest_path": "datasets/manifests/manifest.csv",
+  "manifest_sha256": "4127fc823b6df2dcc6aac0586c2754d03ccad52b530b1d43bb33b1d60aab2708",
+  "n_frames_total": 6774,
+  "primary_scheme": "primary_7group",
+  "schema_version": "splits_v1",
+  "schemes": {
+    "primary_7group": {
+      "groups": {
+        "G1": {
+          "n_frames": 1888,
+          "regions": [
+            "01",
+            "02"
+          ]
+        },
+        "G2": {
+          "n_frames": 1506,
+          "regions": [
+            "03",
+            "04"
+          ]
+        },
+        "G3": {
+          "n_frames": 473,
+          "regions": [
+            "05"
+          ]
+        },
+        "G4": {
+          "n_frames": 344,
+          "regions": [
+            "06"
+          ]
+        },
+        "G5": {
+          "n_frames": 174,
+          "regions": [
+            "07",
+            "10"
+          ]
+        },
+        "G6": {
+          "n_frames": 1799,
+          "regions": [
+            "08",
+            "09"
+          ]
+        },
+        "G7": {
+          "n_frames": 590,
+          "regions": [
+            "11"
+          ]
+        }
+      },
+      "name": "primary_7group",
+      "outer_folds": [
+        {
+          "fold_id": "G1",
+          "inner_folds": [
+            {
+              "inner_id": "G1-i1",
+              "train_groups": [
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G1-i2",
+              "train_groups": [
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G1-i3",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G1-i4",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G1-i5",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G1-i6",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G7"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7"
+          ],
+          "test_group": "G1",
+          "test_regions": [
+            "01",
+            "02"
+          ]
+        },
+        {
+          "fold_id": "G2",
+          "inner_folds": [
+            {
+              "inner_id": "G2-i1",
+              "train_groups": [
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G2-i2",
+              "train_groups": [
+                "G1",
+                "G4",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G2-i3",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G2-i4",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G2-i5",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G2-i6",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G7"
+            }
+          ],
+          "localizer_dev_contaminated": true,
+          "source_groups": [
+            "G1",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7"
+          ],
+          "test_group": "G2",
+          "test_regions": [
+            "03",
+            "04"
+          ]
+        },
+        {
+          "fold_id": "G3",
+          "inner_folds": [
+            {
+              "inner_id": "G3-i1",
+              "train_groups": [
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G3-i2",
+              "train_groups": [
+                "G1",
+                "G4",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G3-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G3-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G3-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G3-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G7"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G4",
+            "G5",
+            "G6",
+            "G7"
+          ],
+          "test_group": "G3",
+          "test_regions": [
+            "05"
+          ]
+        },
+        {
+          "fold_id": "G4",
+          "inner_folds": [
+            {
+              "inner_id": "G4-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G4-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G4-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G5",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G4-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G4-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G4-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G7"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G5",
+            "G6",
+            "G7"
+          ],
+          "test_group": "G4",
+          "test_regions": [
+            "06"
+          ]
+        },
+        {
+          "fold_id": "G5",
+          "inner_folds": [
+            {
+              "inner_id": "G5-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G5-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G5-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G5-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G6",
+                "G7"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G5-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G7"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G5-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6"
+              ],
+              "val_group": "G7"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G6",
+            "G7"
+          ],
+          "test_group": "G5",
+          "test_regions": [
+            "07",
+            "10"
+          ]
+        },
+        {
+          "fold_id": "G6",
+          "inner_folds": [
+            {
+              "inner_id": "G6-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G6-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G6-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G6-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G7"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G6-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G7"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G6-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5"
+              ],
+              "val_group": "G7"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G7"
+          ],
+          "test_group": "G6",
+          "test_regions": [
+            "08",
+            "09"
+          ]
+        },
+        {
+          "fold_id": "G7",
+          "inner_folds": [
+            {
+              "inner_id": "G7-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G7-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G7-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G7-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G7-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G7-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5"
+              ],
+              "val_group": "G6"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6"
+          ],
+          "test_group": "G7",
+          "test_regions": [
+            "11"
+          ]
+        }
+      ],
+      "stage2c_threshold_m": 5000
+    },
+    "sensitivity_10group": {
+      "groups": {
+        "G1": {
+          "n_frames": 817,
+          "regions": [
+            "01"
+          ]
+        },
+        "G10": {
+          "n_frames": 590,
+          "regions": [
+            "11"
+          ]
+        },
+        "G2": {
+          "n_frames": 1071,
+          "regions": [
+            "02"
+          ]
+        },
+        "G3": {
+          "n_frames": 768,
+          "regions": [
+            "03"
+          ]
+        },
+        "G4": {
+          "n_frames": 738,
+          "regions": [
+            "04"
+          ]
+        },
+        "G5": {
+          "n_frames": 473,
+          "regions": [
+            "05"
+          ]
+        },
+        "G6": {
+          "n_frames": 344,
+          "regions": [
+            "06"
+          ]
+        },
+        "G7": {
+          "n_frames": 30,
+          "regions": [
+            "07"
+          ]
+        },
+        "G8": {
+          "n_frames": 1799,
+          "regions": [
+            "08",
+            "09"
+          ]
+        },
+        "G9": {
+          "n_frames": 144,
+          "regions": [
+            "10"
+          ]
+        }
+      },
+      "name": "sensitivity_10group",
+      "outer_folds": [
+        {
+          "fold_id": "G1",
+          "inner_folds": [
+            {
+              "inner_id": "G1-i1",
+              "train_groups": [
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G1-i2",
+              "train_groups": [
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G1-i3",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G1-i4",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G1-i5",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G1-i6",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G1-i7",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G1-i8",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G1-i9",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G1",
+          "test_regions": [
+            "01"
+          ]
+        },
+        {
+          "fold_id": "G2",
+          "inner_folds": [
+            {
+              "inner_id": "G2-i1",
+              "train_groups": [
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G2-i2",
+              "train_groups": [
+                "G1",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G2-i3",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G2-i4",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G2-i5",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G2-i6",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G2-i7",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G2-i8",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G2-i9",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G2",
+          "test_regions": [
+            "02"
+          ]
+        },
+        {
+          "fold_id": "G3",
+          "inner_folds": [
+            {
+              "inner_id": "G3-i1",
+              "train_groups": [
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G3-i2",
+              "train_groups": [
+                "G1",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G3-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G3-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G3-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G3-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G3-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G3-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G3-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": true,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G3",
+          "test_regions": [
+            "03"
+          ]
+        },
+        {
+          "fold_id": "G4",
+          "inner_folds": [
+            {
+              "inner_id": "G4-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G4-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G4-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G4-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G4-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G4-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G4-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G4-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G4-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G4",
+          "test_regions": [
+            "04"
+          ]
+        },
+        {
+          "fold_id": "G5",
+          "inner_folds": [
+            {
+              "inner_id": "G5-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G5-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G5-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G5-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G6",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G5-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G5-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G5-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G5-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G5-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G5",
+          "test_regions": [
+            "05"
+          ]
+        },
+        {
+          "fold_id": "G6",
+          "inner_folds": [
+            {
+              "inner_id": "G6-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G6-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G6-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G6-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G6-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G7",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G6-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G6-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G6-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G6-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G7",
+            "G8",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G6",
+          "test_regions": [
+            "06"
+          ]
+        },
+        {
+          "fold_id": "G7",
+          "inner_folds": [
+            {
+              "inner_id": "G7-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G7-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G7-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G7-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G7-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G7-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G8",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G7-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G7-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G7-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G8",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G7",
+          "test_regions": [
+            "07"
+          ]
+        },
+        {
+          "fold_id": "G8",
+          "inner_folds": [
+            {
+              "inner_id": "G8-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G8-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G8-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G8-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G8-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G8-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G8-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G9",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G8-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G10"
+              ],
+              "val_group": "G9"
+            },
+            {
+              "inner_id": "G8-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G9",
+            "G10"
+          ],
+          "test_group": "G8",
+          "test_regions": [
+            "08",
+            "09"
+          ]
+        },
+        {
+          "fold_id": "G9",
+          "inner_folds": [
+            {
+              "inner_id": "G9-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G9-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G9-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G9-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G9-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G9-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G9-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G10"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G9-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G10"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G9-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8"
+              ],
+              "val_group": "G10"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G10"
+          ],
+          "test_group": "G9",
+          "test_regions": [
+            "10"
+          ]
+        },
+        {
+          "fold_id": "G10",
+          "inner_folds": [
+            {
+              "inner_id": "G10-i1",
+              "train_groups": [
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G1"
+            },
+            {
+              "inner_id": "G10-i2",
+              "train_groups": [
+                "G1",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G2"
+            },
+            {
+              "inner_id": "G10-i3",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G3"
+            },
+            {
+              "inner_id": "G10-i4",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G5",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G4"
+            },
+            {
+              "inner_id": "G10-i5",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G6",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G5"
+            },
+            {
+              "inner_id": "G10-i6",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G7",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G6"
+            },
+            {
+              "inner_id": "G10-i7",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G8",
+                "G9"
+              ],
+              "val_group": "G7"
+            },
+            {
+              "inner_id": "G10-i8",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G9"
+              ],
+              "val_group": "G8"
+            },
+            {
+              "inner_id": "G10-i9",
+              "train_groups": [
+                "G1",
+                "G2",
+                "G3",
+                "G4",
+                "G5",
+                "G6",
+                "G7",
+                "G8"
+              ],
+              "val_group": "G9"
+            }
+          ],
+          "localizer_dev_contaminated": false,
+          "source_groups": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9"
+          ],
+          "test_group": "G10",
+          "test_regions": [
+            "11"
+          ]
+        }
+      ],
+      "stage2c_threshold_m": 0
+    }
+  },
+  "unit_of_assignment": "region (all frames of a region share its group's role)"
+}

@@ -1,0 +1,17 @@
+rule,radius_m,attempts,accepted,accepted_correct,accepted_incorrect,rejected,precision,accepted_correct_rate
+any_output,all,216,215,108,107,1,0.5023,0.5
+any_output,100,72,72,54,18,0,0.75,0.75
+any_output,300,72,72,34,38,0,0.4722,0.4722
+any_output,1000,72,71,20,51,1,0.2817,0.2778
+homography_12,all,216,7,7,0,209,1.0,0.0324
+homography_12,100,72,3,3,0,69,1.0,0.0417
+homography_12,300,72,2,2,0,70,1.0,0.0278
+homography_12,1000,72,2,2,0,70,1.0,0.0278
+homography_20,all,216,0,0,0,216,,0.0
+homography_20,100,72,0,0,0,72,,0.0
+homography_20,300,72,0,0,0,72,,0.0
+homography_20,1000,72,0,0,0,72,,0.0
+homography_30,all,216,0,0,0,216,,0.0
+homography_30,100,72,0,0,0,72,,0.0
+homography_30,300,72,0,0,0,72,,0.0
+homography_30,1000,72,0,0,0,72,,0.0
