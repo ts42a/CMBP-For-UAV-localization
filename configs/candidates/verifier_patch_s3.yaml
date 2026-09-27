@@ -1,0 +1,64 @@
+schema_version: verifier_candidate_v1
+matcher_selected: dinov2_patch_s3
+gate: CANDIDATE_NOT_FROZEN
+gate_basis: reports/verifier_switch_protocol.md
+model:
+  hub_repo: facebookresearch/dinov2
+  model_name: dinov2_vits14
+  embed_dim: 384
+  image_size: 224
+  normalize: l2_on_output
+  device: cpu
+  torch_version: 2.12.1+cpu
+  note: Proposal DINOv3 unavailable; DINOv2 ViT-S/14 documented substitute.
+weights_provenance:
+  source: torch.hub facebookresearch/dinov2 dinov2_vits14 pretrained=True
+preprocessing:
+  image_size: 224
+  imagenet_normalize: true
+  query_rotations_deg:
+  - 0
+  - 90
+  - 180
+  - 270
+  query_rotation_aggregation: max_cosine_over_rotations
+  csv_heading_used: false
+retrieval:
+  metric: cosine
+  top_k: 20
+  database: full_region_tile_index
+  tiling:
+    tile_size_px: 1024
+    stride_px: 512
+fine_match:
+  enabled: true
+  method: dinov2_patch_similarity_ransac
+  query_long_edge: 448
+  sat_crop_px: 448
+  query_rotations_deg:
+  - 0
+  - 45
+  - 90
+  - 135
+  - 180
+  - 225
+  - 270
+  - 315
+  context_scales:
+  - 3
+  ransac_reproj_threshold_px: 14.0
+  min_matches_fit: 6
+  scale_range:
+  - 0.25
+  - 4.0
+  min_valid_coverage: 0.9
+resources:
+  device: cpu
+  ram_target_gb: 16
+  gpu: Intel Iris Xe optional unused
+splits:
+  path: configs/stage3b_splits.yaml
+  frozen_at: '2026-09-24T03:16:52.758184+00:00'
+  n_val: 30
+  n_tune: 24
+baseline_preserved: pyramid_ncc_rot4

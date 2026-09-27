@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "localization"))
 
 from dino_embedder import DinoGlobalEmbedder, load_embedding_cache  # noqa: E402
-from frozen_matcher import FROZEN, load_frozen  # noqa: E402
+from patch_verify import PatchVerifier  # noqa: E402
 from geo_utils import geodesic_m  # noqa: E402
 from project_paths import CACHE_EMB, DATASET_ROOT  # noqa: E402
 from query_select import load_manifest_region, select_queries  # noqa: E402
@@ -41,6 +41,7 @@ from windowed_matcher import (  # noqa: E402
     M_PER_DEG_LON_EQ,
     QueryContext,
     RegionIndex,
+    is_patch,
     localize_windowed,
 )
 
@@ -56,7 +57,8 @@ FIELDS = [
     "pred_lat", "pred_lon", "predicted_tile_id", "predicted_raster_id", "top_score",
     "score_margin", "fine_inliers", "used_homography", "geo_verify_status",
     "geodesic_error_m", "accept_rule", "accepted", "outcome_primary",
-    "runtime_s", "frame_setup_s", "frame_cpu_s", "matcher_id", "config_sha256", "prereg_sha256",
+    "patch_n_mutual", "patch_query_rot_deg", "patch_sim_scale", "patch_sim_angle_deg", "patch_context_scale",
+    "runtime_s", "frame_setup_s", "frame_cpu_s", "matcher_id", "config_path", "config_sha256", "prereg_sha256",
 ]
 KEY = ("region", "filename", "variant", "radius_m", "offset_k")
 
@@ -92,12 +94,12 @@ def is_accepted(rule: str | None, row: dict) -> bool | None:
         return False
     if rule == "any_output":
         return True
-    h = int(row["used_homography"]) == 1
-    inl = int(row["fine_inliers"])
-    thresholds = {"homography_12": 12, "homography_20": 20, "homography_30": 30}
-    if rule not in thresholds:
+    kind, _, n = rule.rpartition("_")
+    if kind not in ("homography", "patch") or not n.isdigit():
         raise ValueError(f"unknown accept rule {rule}")
-    return h and inl >= thresholds[rule]
+    status = {"homography": "homography", "patch": "patch_similarity"}[kind]
+    return (int(row["used_homography"]) == 1 and row["geo_verify_status"] == status
+            and int(row["fine_inliers"]) >= int(n))
 
 
 def offset_for(seed: int, region: str, filename: str, radius: int, k: int) -> tuple[float, float]:
@@ -153,15 +155,18 @@ def main() -> int:
     ap.add_argument("--per-region", type=int, default=10)
     ap.add_argument("--select-seed", type=int, default=20260927)
     ap.add_argument("--max-frames", type=int, default=None)
+    ap.add_argument("--matcher-config", default=None, help="default = preregistration inputs.frozen_matcher")
+    ap.add_argument("--accept-rule", default=None, help="override the pre-registered rule; 'none' leaves outcomes blank")
     args = ap.parse_args()
 
     prereg = yaml.safe_load(PREREG.read_text(encoding="utf-8"))
-    frozen = load_frozen()
+    cfg_path = ROOT / (args.matcher_config or prereg["inputs"]["frozen_matcher"])
+    frozen = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
     radii = [int(x) for x in args.radii.split(",")] if args.radii else list(prereg["search_window"]["radii_m"])
     k_per = 1 if (args.zero_offset or args.control_offset_m is not None) else (args.k or prereg["prior_offset"]["offsets_per_frame_per_radius"])
     seed = int(prereg["prior_offset"]["seed"])
     tol = float(prereg["tolerances_m"]["primary"])
-    rule = prereg["accept_rule"]["selected"]
+    rule = prereg["accept_rule"]["selected"] if args.accept_rule is None else (None if args.accept_rule == "none" else args.accept_rule)
     variant = "zero" if args.zero_offset else (f"control{int(args.control_offset_m)}" if args.control_offset_m is not None else "prior")
     g7 = region_to_group7()
 
@@ -175,11 +180,13 @@ def main() -> int:
     frames = pick_frames(args)
     if args.max_frames:
         frames = frames[: args.max_frames]
-    cfg_sha, prereg_sha = sha256(FROZEN), sha256(PREREG)
+    cfg_sha, prereg_sha = sha256(cfg_path), sha256(PREREG)
+    cfg_rel = cfg_path.relative_to(ROOT).as_posix()
     (out_dir / "run_manifest.json").write_text(json.dumps({
         "started_at": datetime.now(timezone.utc).isoformat(),
         "git_commit": git_head(),
         "git_dirty_scripts_or_configs": git_dirty(),
+        "config_path": cfg_rel,
         "config_sha256": cfg_sha,
         "prereg_sha256": prereg_sha,
         "splits_sha256": sha256(SPLITS),
@@ -193,6 +200,7 @@ def main() -> int:
 
     spec = TileSpec(int(frozen["retrieval"]["tiling"]["tile_size_px"]), int(frozen["retrieval"]["tiling"]["stride_px"]))
     embedder = DinoGlobalEmbedder(image_size=int(frozen["model"]["image_size"]))
+    verifier = PatchVerifier(embedder.model, frozen["fine_match"]) if is_patch(frozen) else None
     new_rows = 0
     f_out = out_csv.open("a", encoding="utf-8", newline="")
     writer = csv.DictWriter(f_out, fieldnames=FIELDS)
@@ -223,7 +231,7 @@ def main() -> int:
         bgr = cv2.imread(str(path))
         if bgr is None:
             raise RuntimeError(f"cannot read {path}")
-        ctx = QueryContext(bgr, embedder, frozen)
+        ctx = QueryContext(bgr, embedder, frozen, verifier)
         setup_s = time.perf_counter() - t0
         tlat, tlon = float(q["lat"]), float(q["lon"])
 
@@ -236,7 +244,7 @@ def main() -> int:
             else:
                 e, n = offset_for(seed, region, q["filename"], r, k)
             clat, clon = shift(tlat, tlon, e, n)
-            res = localize_windowed(ctx, index, clat, clon, float(r), frozen)
+            res = localize_windowed(ctx, index, clat, clon, float(r), frozen, verifier)
             dist_c = geodesic_m(tlon, tlat, clon, clat)
             row = {
                 "region": region, "group_7": g7[region], "filename": q["filename"], "num": q["num"],
@@ -245,7 +253,7 @@ def main() -> int:
                 "center_lat": round(clat, 8), "center_lon": round(clon, 8),
                 "truth_dist_to_center_m": round(dist_c, 3), "truth_within_radius": int(dist_c <= r),
                 **res,
-                "config_sha256": cfg_sha, "prereg_sha256": prereg_sha,
+                "config_path": cfg_rel, "config_sha256": cfg_sha, "prereg_sha256": prereg_sha,
             }
             if res["pred_lat"] != "":
                 err = geodesic_m(tlon, tlat, float(res["pred_lon"]), float(res["pred_lat"]))
