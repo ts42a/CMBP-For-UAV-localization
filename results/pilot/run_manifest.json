@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-09-23T21:55:17.230657+00:00",
+  "git_commit": "unknown",
+  "config_hash": "fc6845fb9334d12a",
+  "frozen_config_path": "F:\\CMBL\\configs\\matcher_dinov3_frozen.yaml",
+  "torch_version": "2.12.1+cpu",
+  "device": "cpu",
+  "pilot_seed": 20260923,
+  "dev_seed": 42
+}

@@ -1,0 +1,11 @@
+# Localization label pipeline (Stage 3B+)
+torch>=2.0
+torchvision>=0.15
+numpy
+opencv-python
+pyyaml
+pyproj
+tifffile
+Pillow
+
+# DINOv2 weights via torch.hub (facebookresearch/dinov2) — no separate pip package.

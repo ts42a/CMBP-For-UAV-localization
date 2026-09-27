@@ -1,0 +1,126 @@
+schema_version: stage3a_v1
+frozen_at: '2026-09-22T22:44:01.897745+00:00'
+paths:
+  dataset_root: F:/CMBL/datasets/raw/UAV_VisLoc_dataset
+  manifest: F:/CMBL/datasets/manifests/manifest.csv
+  satellite_metadata: F:/CMBL/datasets/manifests/satellite_metadata.csv
+  region_groups: F:/CMBL/reports/independent_region_groups.csv
+task:
+  description: 'Real UAV JPG queries; searchable reference = satellite tiles from
+    the query''s region map only. Predicted position comes only from the matcher (tile
+    centre or homography-refined point). CSV lat/lon used only post-hoc for geodesic
+    scoring.
+
+    '
+  search_uses_gt_position: false
+  footprint_geometry_as_gt: false
+leakage_and_splits:
+  merge_regions:
+  - 08+09
+  source_groups_csv: F:/CMBL/reports/independent_region_groups.csv
+  group_reporting:
+    overlap_only_10_groups:
+      threshold_m: 0
+      n_groups: 10
+      units:
+      - '01'
+      - '02'
+      - '03'
+      - '04'
+      - '05'
+      - '06'
+      - '07'
+      - 08+09
+      - '10'
+      - '11'
+    sensitivity_7_groups_5km:
+      threshold_m: 5000
+      n_groups: 7
+      units:
+      - 01+02
+      - 03+04
+      - '05'
+      - '06'
+      - 07+10
+      - 08+09
+      - '11'
+  matcher_tuning_regions:
+  - '03'
+  pilot_region: '03'
+  evaluation_regions_future:
+    note: >-
+      Hold out entire 10-group (overlap-only) or 7-group (5 km) units.
+      Never tune matcher hyperparameters on evaluation group units.
+      Under 7-group sensitivity, region 03 shares a unit with 04 — treat 03+04
+      as one coupled block for holdout reporting.
+  matcher_dev_subset:
+    n_queries: 24
+    seed: 42
+satellite_tiling:
+  tile_size_px: 1024
+  stride_px: 512
+  overlap_fraction: 0.5
+  tile_center_georef: pixel_center_to_wgs84
+  region_09_policy: union_four_tiles
+query_preprocessing:
+  colorspace: rgb
+  max_long_edge_px: 768
+  rotation_handling: fixed_cardinal_bank_for_pyramid_ncc_rot4
+  rotation_rationale: >-
+    Phi1 yaw convention unresolved (Stage 2D). Frozen matcher uses a fixed
+    0/90/180/270° query rotation bank — not CSV Phi (CSV heading must not
+    restrict or bias search).
+  scale_handling: fixed_resize_only
+  scale_rationale: >-
+    Height datum and intrinsics unresolved; no height-based GSD scaling.
+matcher_candidates_dev_only:
+- id: pyramid_ncc_rot4
+  description: Downsampled full-map NCC with query rotation bank (0/90/180/270).
+- id: akaze_coarse_to_fine
+  description: Coarse tile NCC top-K then AKAZE + RANSAC homography when inliers suffice.
+- id: coarse_ncc
+  description: Tile-level 64x64 NCC; winner tile centre (baseline).
+matcher_selected: pyramid_ncc_rot4
+matcher_params:
+  pyramid_ncc_rot4:
+    max_long_edge_px: 640
+    satellite_max_long_edge_px: 4096
+    rotations_deg:
+    - 0
+    - 90
+    - 180
+    - 270
+  coarse_ncc:
+    coarse_patch_px: 64
+    coarse_top_k: 1
+  akaze_coarse_to_fine:
+    coarse_patch_px: 64
+    coarse_top_k: 15
+    akaze_max_features: 4000
+    ratio_test: 0.75
+    ransac_reproj_threshold_px: 3.0
+    min_inliers_for_homography: 12
+success_thresholds_m:
+- value: 50
+  justification: ~0.18x satellite GSD (~0.27 m/px); strict sub-flight-spacing target
+- value: 100
+  justification: ~1x median along-track spacing region 03 (~95 m per Stage 2B flight_stats)
+- value: 250
+  justification: moderate coarse fix; below typical map tile stride at GSD scale
+- value: 500
+  justification: lenient coarse localization; proposal mentions provisional search
+    radii up to 500m class
+pilot:
+  n_queries: 100
+  selection_rule: 'Stratified deciles on flight num (1..768) in region 03; one frame
+    per decile bin plus fill to 100 with evenly spaced num if deciles duplicate.
+
+    '
+hardware_notes:
+  target: Dell XPS 9320, 16 GB RAM, Intel Iris Xe
+  proposal_matcher: compact DINOv3
+  stage3a_choice: 'DINOv3 not run in 3A (dependency/VRAM); dev-only comparison of
+    OpenCV NCC vs AKAZE coarse-to-fine on CPU. Document as documented alternative
+    path per proposal.
+
+    '

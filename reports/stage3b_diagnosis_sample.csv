@@ -1,0 +1,9 @@
+filename,stage3a_error_m,gt_on_map,n_tiles_covering_gt,nearest_tile_center_m,ncc_at_gt,ncc_at_pred,dino_gt_in_top20_rank,dino_top1_center_dist_m,dino_recall_at_20,failure_codes
+03_0433.JPG,303.8,1,4,48.8,0.0241,-0.1416,6,616.9,1,weak_crossmodal_ncc_at_gt
+03_0625.JPG,442.2,1,4,74.5,0.0683,0.0969,3,2741.2,1,ncc_prefers_wrong_or_tied
+03_0345.JPG,3280.4,1,4,18.8,0.1462,-0.0746,11,2458.7,1,retrieval_ok_localization_fail|catastrophic_alias
+03_0457.JPG,3311.3,1,4,59.3,0.1116,-0.0559,5,770.0,1,retrieval_ok_localization_fail|catastrophic_alias
+03_0393.JPG,6233.4,1,4,8.9,0.0457,-0.1404,1,8.9,1,retrieval_ok_localization_fail|catastrophic_alias|weak_crossmodal_ncc_at_gt
+03_0185.JPG,6324.4,1,4,71.3,-0.2095,-0.009,,4261.1,0,ncc_prefers_wrong_or_tied|embedding_miss_top20|catastrophic_alias
+03_0001.JPG,6512.9,1,4,30.6,0.0631,0.1142,,7350.6,0,ncc_prefers_wrong_or_tied|embedding_miss_top20|catastrophic_alias
+03_0768.JPG,7221.5,1,4,63.7,0.0046,-0.0577,11,3946.1,1,retrieval_ok_localization_fail|catastrophic_alias|weak_crossmodal_ncc_at_gt

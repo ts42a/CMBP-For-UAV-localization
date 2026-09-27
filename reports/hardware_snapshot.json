@@ -1,0 +1,38 @@
+﻿{
+    "captured_at":  "2026-09-22T09:42:15.4695529+10:00",
+    "manufacturer":  "Dell Inc.",
+    "model":  "XPS 9320",
+    "cpu":  "13th Gen Intel(R) Core(TM) i7-1360P",
+    "cpu_cores":  12,
+    "logical_processors":  16,
+    "ram_total_gb":  15.62,
+    "ram_free_gb":  2.91,
+    "gpu":  "Intel(R) Iris(R) Xe Graphics",
+    "os":  "Microsoft Windows 11 Home 10.0.26200 64-bit",
+    "drives":  [
+                   {
+                       "label":  "OS",
+                       "size_gb":  275.48,
+                       "letter":  "C:",
+                       "free_gb":  16.75
+                   },
+                   {
+                       "label":  "Data",
+                       "size_gb":  60,
+                       "letter":  "D:",
+                       "free_gb":  6.84
+                   },
+                   {
+                       "label":  "Apps",
+                       "size_gb":  40.9,
+                       "letter":  "E:",
+                       "free_gb":  34.49
+                   },
+                   {
+                       "label":  "Work",
+                       "size_gb":  79.1,
+                       "letter":  "F:",
+                       "free_gb":  74.74
+                   }
+               ]
+}

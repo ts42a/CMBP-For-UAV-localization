@@ -1,0 +1,10 @@
+filename,error_m,success_100m,gt_in_topk_rank,fine_inliers,used_homography,visual_credible_100m,figure,notes
+03_0168.JPG,11.733,1,1,0,0,1,figures/stage3b/val_dinov2_global_03_0168_succ100.png,credible iff @100m AND GT in top-k AND (homography+inliers>=12 OR err<=50m)
+03_0441.JPG,40.379,1,1,0,0,1,figures/stage3b/val_dinov2_global_03_0441_succ100.png,credible iff @100m AND GT in top-k AND (homography+inliers>=12 OR err<=50m)
+03_0709.JPG,42.291,1,1,0,0,1,figures/stage3b/val_dinov2_global_03_0709_succ100.png,credible iff @100m AND GT in top-k AND (homography+inliers>=12 OR err<=50m)
+03_0326.JPG,50.706,1,1,0,0,0,figures/stage3b/val_dinov2_global_03_0326_succ100.png,credible iff @100m AND GT in top-k AND (homography+inliers>=12 OR err<=50m)
+03_0482.JPG,82.768,1,1,0,0,0,figures/stage3b/val_dinov2_global_03_0482_succ100.png,credible iff @100m AND GT in top-k AND (homography+inliers>=12 OR err<=50m)
+03_0129.JPG,109.937,0,1,0,0,0,figures/stage3b/val_dinov2_global_03_0129_succ500.png,failure_or_non100
+03_0369.JPG,4109.532,0,,0,0,0,figures/stage3b/val_dinov2_global_03_0369_fail.png,failure_or_non100
+03_0399.JPG,4524.856,0,,0,0,0,figures/stage3b/val_dinov2_global_03_0399_fail.png,failure_or_non100
+03_0189.JPG,4618.815,0,8,0,0,0,figures/stage3b/val_dinov2_global_03_0189_fail.png,failure_or_non100

@@ -1,0 +1,16 @@
+{
+  "gate": "PASS",
+  "decision": "READY",
+  "val_csv": "F:\\CMBL\\reports\\stage3b_val_dinov2_c2f.csv",
+  "n": 30,
+  "success_100m": 9,
+  "failure_100m": 21,
+  "recomputed_geodesic_matches": 30,
+  "search_used_gt_position_count": 0,
+  "exact_csv_copy_count": 0,
+  "location_from_match_or_geo_verify": 30,
+  "successes_with_homography": 2,
+  "successes_with_tile_center": 7,
+  "human_review_not_used_as_100m_criterion": true,
+  "causes": []
+}

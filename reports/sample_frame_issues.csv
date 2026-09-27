@@ -1,0 +1,14 @@
+severity,category,item,detail
+definite,no_embedded_exif_xmp,03_0001.JPG,No APP1 Exif/XMP in file; camera model/focal/GPS/gimbal not available from image bytes
+definite,no_embedded_exif_xmp,03_0002.JPG,No APP1 Exif/XMP in file; camera model/focal/GPS/gimbal not available from image bytes
+definite,no_embedded_exif_xmp,03_0003.JPG,No APP1 Exif/XMP in file; camera model/focal/GPS/gimbal not available from image bytes
+definite,no_embedded_exif_xmp,03_0385.JPG,No APP1 Exif/XMP in file; camera model/focal/GPS/gimbal not available from image bytes
+definite,no_embedded_exif_xmp,03_0768.JPG,No APP1 Exif/XMP in file; camera model/focal/GPS/gimbal not available from image bytes
+definite,missing_camera_intrinsics,region_03,Sensor size / focal length (mm or px) not in CSV README paper sample; cannot invent values
+unresolved,naming,mapname,range CSV mapname=03.tif but on-disk file is satellite03.tif; alias rule not documented
+unresolved,units,height,README says at what height; AGL vs AMSL vs ellipsoid not stated; do not treat as HAGL
+unresolved,units,Omega_Kappa,Documented as pitch/roll; numeric units presumed degrees from magnitude; zero and axis conventions not stated
+unresolved,units,Phi1_Phi2,Both documented as yaw; Phi1 preferred; zero/north/clockwise and vehicle vs camera yaw not stated
+unresolved,timezone,date,Timestamps are ISO-like local strings; timezone not stated; filename does not prove capture date alone but CSV date is present
+unresolved,region_independence,Taizhou-1,region label is a place string; not evidence that region 03 is geographically independent of other regions
+note,sat_preview_resolved,satellite03.tif,Tile previews written via page.segments()[i][0]; earlier 1D-index error was a script bug not a raster defect

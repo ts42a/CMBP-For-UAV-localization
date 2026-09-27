@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-09-24T03:03:38.264236+00:00",
+  "extract_root": "F:\\CMBL\\datasets\\raw\\UAV_VisLoc_dataset",
+  "release_layout": {
+    "release_class": "github_intellisensing",
+    "readme_present": true,
+    "zenodo_markers": 0,
+    "region_folders": 11
+  },
+  "archive": {
+    "path": "F:\\CMBL\\datasets\\raw\\UAV_VisLoc_dataset.zip",
+    "present": false,
+    "note": "local integrity SHA256 skipped \u2014 zip not present; using manual extract only"
+  },
+  "n_jpg": 6774,
+  "n_maps": 11,
+  "n_satellite_rasters": 14,
+  "documented_uav": 6742,
+  "documented_maps": 11,
+  "n_issues": 6,
+  "range_csv": "F:\\CMBL\\datasets\\raw\\UAV_VisLoc_dataset\\satellite_ coordinates_range.csv",
+  "n_range_rows": 11,
+  "F_free_bytes": 38617837568,
+  "manifest_rows": 6774
+}

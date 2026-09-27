@@ -1,0 +1,235 @@
+schema_version: stage3b_splits_v1
+frozen_at: '2026-09-24T03:16:52.758184+00:00'
+region: '03'
+notes: Validation subset is frozen BEFORE matcher tuning. Tune hyperparameters only
+  on tune_queries. Gate decision uses val_queries only. compare_stage3a_queries is
+  for baseline comparison, not for choosing the matcher.
+val_seed: 20260924
+tune_seed: 42
+n_val: 30
+n_tune: 24
+val_queries:
+- num: 14
+  filename: 03_0014.JPG
+- num: 66
+  filename: 03_0066.JPG
+- num: 99
+  filename: 03_0099.JPG
+- num: 104
+  filename: 03_0104.JPG
+- num: 129
+  filename: 03_0129.JPG
+- num: 168
+  filename: 03_0168.JPG
+- num: 175
+  filename: 03_0175.JPG
+- num: 177
+  filename: 03_0177.JPG
+- num: 181
+  filename: 03_0181.JPG
+- num: 189
+  filename: 03_0189.JPG
+- num: 243
+  filename: 03_0243.JPG
+- num: 257
+  filename: 03_0257.JPG
+- num: 271
+  filename: 03_0271.JPG
+- num: 289
+  filename: 03_0289.JPG
+- num: 315
+  filename: 03_0315.JPG
+- num: 326
+  filename: 03_0326.JPG
+- num: 339
+  filename: 03_0339.JPG
+- num: 369
+  filename: 03_0369.JPG
+- num: 399
+  filename: 03_0399.JPG
+- num: 426
+  filename: 03_0426.JPG
+- num: 441
+  filename: 03_0441.JPG
+- num: 455
+  filename: 03_0455.JPG
+- num: 482
+  filename: 03_0482.JPG
+- num: 512
+  filename: 03_0512.JPG
+- num: 587
+  filename: 03_0587.JPG
+- num: 630
+  filename: 03_0630.JPG
+- num: 649
+  filename: 03_0649.JPG
+- num: 697
+  filename: 03_0697.JPG
+- num: 709
+  filename: 03_0709.JPG
+- num: 724
+  filename: 03_0724.JPG
+tune_queries:
+- num: 6
+  filename: 03_0006.JPG
+- num: 54
+  filename: 03_0054.JPG
+- num: 68
+  filename: 03_0068.JPG
+- num: 222
+  filename: 03_0222.JPG
+- num: 269
+  filename: 03_0269.JPG
+- num: 275
+  filename: 03_0275.JPG
+- num: 292
+  filename: 03_0292.JPG
+- num: 338
+  filename: 03_0338.JPG
+- num: 348
+  filename: 03_0348.JPG
+- num: 355
+  filename: 03_0355.JPG
+- num: 460
+  filename: 03_0460.JPG
+- num: 489
+  filename: 03_0489.JPG
+- num: 501
+  filename: 03_0501.JPG
+- num: 505
+  filename: 03_0505.JPG
+- num: 525
+  filename: 03_0525.JPG
+- num: 538
+  filename: 03_0538.JPG
+- num: 539
+  filename: 03_0539.JPG
+- num: 562
+  filename: 03_0562.JPG
+- num: 583
+  filename: 03_0583.JPG
+- num: 635
+  filename: 03_0635.JPG
+- num: 638
+  filename: 03_0638.JPG
+- num: 712
+  filename: 03_0712.JPG
+- num: 738
+  filename: 03_0738.JPG
+- num: 757
+  filename: 03_0757.JPG
+compare_stage3a_queries:
+- filename: 03_0001.JPG
+- filename: 03_0009.JPG
+- filename: 03_0017.JPG
+- filename: 03_0025.JPG
+- filename: 03_0033.JPG
+- filename: 03_0041.JPG
+- filename: 03_0049.JPG
+- filename: 03_0057.JPG
+- filename: 03_0065.JPG
+- filename: 03_0073.JPG
+- filename: 03_0077.JPG
+- filename: 03_0081.JPG
+- filename: 03_0089.JPG
+- filename: 03_0097.JPG
+- filename: 03_0105.JPG
+- filename: 03_0113.JPG
+- filename: 03_0121.JPG
+- filename: 03_0129.JPG
+- filename: 03_0137.JPG
+- filename: 03_0145.JPG
+- filename: 03_0153.JPG
+- filename: 03_0154.JPG
+- filename: 03_0161.JPG
+- filename: 03_0169.JPG
+- filename: 03_0177.JPG
+- filename: 03_0185.JPG
+- filename: 03_0193.JPG
+- filename: 03_0201.JPG
+- filename: 03_0209.JPG
+- filename: 03_0217.JPG
+- filename: 03_0225.JPG
+- filename: 03_0230.JPG
+- filename: 03_0233.JPG
+- filename: 03_0241.JPG
+- filename: 03_0249.JPG
+- filename: 03_0257.JPG
+- filename: 03_0265.JPG
+- filename: 03_0273.JPG
+- filename: 03_0281.JPG
+- filename: 03_0289.JPG
+- filename: 03_0297.JPG
+- filename: 03_0305.JPG
+- filename: 03_0307.JPG
+- filename: 03_0313.JPG
+- filename: 03_0321.JPG
+- filename: 03_0329.JPG
+- filename: 03_0337.JPG
+- filename: 03_0345.JPG
+- filename: 03_0353.JPG
+- filename: 03_0361.JPG
+- filename: 03_0369.JPG
+- filename: 03_0377.JPG
+- filename: 03_0384.JPG
+- filename: 03_0385.JPG
+- filename: 03_0393.JPG
+- filename: 03_0401.JPG
+- filename: 03_0409.JPG
+- filename: 03_0417.JPG
+- filename: 03_0425.JPG
+- filename: 03_0433.JPG
+- filename: 03_0441.JPG
+- filename: 03_0449.JPG
+- filename: 03_0457.JPG
+- filename: 03_0461.JPG
+- filename: 03_0465.JPG
+- filename: 03_0473.JPG
+- filename: 03_0481.JPG
+- filename: 03_0489.JPG
+- filename: 03_0497.JPG
+- filename: 03_0505.JPG
+- filename: 03_0513.JPG
+- filename: 03_0521.JPG
+- filename: 03_0529.JPG
+- filename: 03_0537.JPG
+- filename: 03_0538.JPG
+- filename: 03_0545.JPG
+- filename: 03_0553.JPG
+- filename: 03_0561.JPG
+- filename: 03_0569.JPG
+- filename: 03_0577.JPG
+- filename: 03_0585.JPG
+- filename: 03_0593.JPG
+- filename: 03_0601.JPG
+- filename: 03_0609.JPG
+- filename: 03_0614.JPG
+- filename: 03_0617.JPG
+- filename: 03_0625.JPG
+- filename: 03_0633.JPG
+- filename: 03_0641.JPG
+- filename: 03_0649.JPG
+- filename: 03_0657.JPG
+- filename: 03_0665.JPG
+- filename: 03_0673.JPG
+- filename: 03_0681.JPG
+- filename: 03_0689.JPG
+- filename: 03_0691.JPG
+- filename: 03_0697.JPG
+- filename: 03_0705.JPG
+- filename: 03_0713.JPG
+- filename: 03_0768.JPG
+overlap_tune_val: []
+overlap_tune_stage3a:
+- 03_0489.JPG
+- 03_0505.JPG
+- 03_0538.JPG
+overlap_val_stage3a:
+- 03_0129.JPG
+- 03_0177.JPG
+- 03_0257.JPG
+- 03_0289.JPG
+- 03_0369.JPG
+- 03_0441.JPG
+- 03_0649.JPG
+- 03_0697.JPG

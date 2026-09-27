@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-09-22T22:12:46.130640+00:00",
+  "selection_rule": "Start from decile positions along sorted flight num (1..768). Add height min/max, Phi1 min/max, Omega min/max if fewer than 10 unique; cap at 10.",
+  "selected_frames": [
+    "03_0077.JPG",
+    "03_0154.JPG",
+    "03_0230.JPG",
+    "03_0307.JPG",
+    "03_0384.JPG",
+    "03_0461.JPG",
+    "03_0538.JPG",
+    "03_0614.JPG",
+    "03_0691.JPG",
+    "03_0768.JPG"
+  ],
+  "fit_frames": [
+    "03_0614.JPG",
+    "03_0768.JPG",
+    "03_0384.JPG",
+    "03_0461.JPG"
+  ],
+  "held_out_frames": [
+    "03_0077.JPG",
+    "03_0154.JPG",
+    "03_0230.JPG",
+    "03_0307.JPG",
+    "03_0538.JPG",
+    "03_0691.JPG"
+  ],
+  "global_geometry_fit": {
+    "score": 0.3107183948159218,
+    "rot_offset": 10.0,
+    "scale": 0.08,
+    "convention": "north_up: rotate_drone_by(-Phi1 + 90 + offset)"
+  },
+  "fit_alignment_error_m_median": 104.5,
+  "held_alignment_error_m_median": 97.29499999999999,
+  "intrinsics_search": "No camera model/focal length in README, CSV, or EXIF (Stage 2A)",
+  "fixed_scale_interpretation": "sat_pixels_per_drone_pixel from NCC fit on 4 frames only"
+}

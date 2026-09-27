@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-09-23",
+  "scope": "Stages 1-2 consolidation; no model training",
+  "literature": {
+    "decision": "GO",
+    "provisional": true,
+    "reason": "No reviewed full text combines real UAV outcomes, geographic holdouts, probability calibration, and numeric-probability scheduling; MLSNet full text unread",
+    "evidence": [
+      "reports/gap_decision.md",
+      "literature/comparison.csv",
+      "literature/evidence_ledger.csv"
+    ],
+    "residual_risk": "MLSNet PDF unavailable; gap could narrow if unread sections affirm criteria"
+  },
+  "region_independence": {
+    "decision": "GO",
+    "low_power": false,
+    "strict_overlap_groups": 10,
+    "primary_threshold_m": 5000,
+    "groups_at_primary_threshold": 7,
+    "coupled_units": ["08+09"],
+    "sensitivity_report_both": true,
+    "evidence": [
+      "reports/region_independence.md",
+      "reports/independent_region_groups.csv",
+      "figures/regions_and_tracks.png"
+    ]
+  },
+  "coordinate_centres": {
+    "decision": "usable",
+    "sub_metre_validated": false,
+    "evidence": [
+      "reports/full_dataset_audit.md",
+      "reports/footprint_validation.md",
+      "dataset/satellite_metadata.csv"
+    ]
+  },
+  "precise_footprint_ground_truth": {
+    "decision": "APPROXIMATE",
+    "footprint_polygons_validated": false,
+    "ncc_shift_median_held_out_m": 97.29,
+    "ncc_shift_is_proven_coordinate_error": false,
+    "fixed_scale_rotation_empirical_fit_only": true,
+    "evidence": [
+      "reports/footprint_validation.md",
+      "reports/stage2d_summary.json",
+      "scripts/audit/stage2d_footprint_validation.py"
+    ]
+  },
+  "overall_dataset": {
+    "decision": "GO_WITH_LIMITATIONS",
+    "release": "github_intellisensing",
+    "extract_path": "datasets/raw/UAV_VisLoc_dataset",
+    "documented_images": 6742,
+    "observed_images": 6774,
+    "regions": 11,
+    "manifest_rows": 6774,
+    "zenodo_alternate_not_primary": "10.5281/zenodo.19603534",
+    "evidence": [
+      "reports/full_dataset_audit.md",
+      "reports/sample_audit.md",
+      "dataset/manifest.csv"
+    ]
+  },
+  "unresolved": [
+    "MLSNet full text",
+    "height datum AGL/AMSL/ellipsoid",
+    "vehicle versus camera yaw",
+    "camera intrinsics",
+    "Omega/Kappa roles",
+    "CSV timezone",
+    "region 09 four-tile map assembly",
+    "publisher full-archive SHA256"
+  ],
+  "next_stage_recommended_scope": [
+    "Real UAV outcomes with frozen matcher on GitHub release",
+    "Regional holdouts with 08+09 merged; report 10-group and 7-group sensitivity",
+    "Probability calibration and scheduling evaluation per proposal",
+    "Do not use footprint polygons as validated GT without independent geometry recovery"
+  ],
+  "paper_claims_forbidden_without_new_evidence": [
+    "Four-criterion gap closed by MLSNet or unread priors",
+    "Dataset size 6742 as actual count",
+    "Stage2D NCC shift as geodetic CSV error",
+    "Validated footprint polygons from release metadata",
+    "Proven Phi/Omega/Kappa and height datum",
+    "Visual independence from map geometry alone",
+    "Zenodo 14998 release equivalence to this extract",
+    "Empty unusable_frames.csv implies precise GT for all frames"
+  ],
+  "primary_deliverable": "reports/stage1_stage2_final.md"
+}

@@ -1,0 +1,75 @@
+schema_version: dinov2_retrieval_v1
+frozen_at: '2026-09-23T21:39:38.303049+00:00'
+equivalent_note: DINOv3 slot filled by frozen DINOv2 ViT-S/14 (torch.hub).
+model:
+  hub_repo: facebookresearch/dinov2
+  model_name: dinov2_vits14
+  embed_dim: '384'
+  image_size: '224'
+  normalize: l2_on_output
+  device: cpu
+  torch_version: 2.12.1+cpu
+  note: 'Proposal DINOv3 slot: using frozen DINOv2 ViT-S/14 (384-d) via torch.hub.'
+retrieval:
+  metric: cosine
+  top_k: 20
+  l2_normalize: true
+fine_match:
+  enabled: true
+  method: akaze_ransac_homography
+  query_max_long_edge: 768
+  ratio_test: 0.75
+  min_inliers: 12
+  ransac_reproj_threshold_px: 3.0
+dev_tuning:
+  regions_only:
+  - '03'
+  n_dev_queries: 24
+  seed: 42
+  grid_results:
+  - &id001
+    image_size: 224
+    top_k: 20
+    fine_match: true
+    success_100m: 4
+    n: 24
+    median_err: 2114.2561667817317
+    recall_at_k: 0.16666666666666666
+  - image_size: 224
+    top_k: 10
+    fine_match: true
+    success_100m: 2
+    n: 24
+    median_err: 2325.9071542708043
+    recall_at_k: 0.08333333333333333
+  - image_size: 224
+    top_k: 20
+    fine_match: false
+    success_100m: 2
+    n: 24
+    median_err: 2446.786269122561
+    recall_at_k: 0.16666666666666666
+  - image_size: 224
+    top_k: 10
+    fine_match: false
+    success_100m: 2
+    n: 24
+    median_err: 2446.786269122561
+    recall_at_k: 0.08333333333333333
+  - image_size: 224
+    top_k: 5
+    fine_match: false
+    success_100m: 2
+    n: 24
+    median_err: 2446.786269122561
+    recall_at_k: 0.0
+  - image_size: 224
+    top_k: 5
+    fine_match: true
+    success_100m: 2
+    n: 24
+    median_err: 2446.786269122561
+    recall_at_k: 0.0
+  selected: *id001
+success_threshold_primary_m: 100
+random_seed: 20260923

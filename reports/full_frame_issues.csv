@@ -1,0 +1,7 @@
+severity,category,reason_code,region,item,detail,evidence
+investigate,multi_tile_satellite_map,multi_tile_satellite_map,09,"satellite09_01-01.tif,satellite09_01-02.tif,satellite09_02-01.tif,satellite09_02-02.tif",canonical satellite09.tif absent; 4 tile GeoTIFFs present,canonical satellite09.tif absent; 4 tile GeoTIFFs present
+investigate,satellite_bounds_csv_mismatch,satellite_bounds_csv_mismatch,09,satellite09_01-01.tif,max_abs_delta=0.051228810546874115 (tile may be chip not full map),max_abs_delta=0.051228810546874115 (tile may be chip not full map)
+investigate,satellite_bounds_csv_mismatch,satellite_bounds_csv_mismatch,09,satellite09_01-02.tif,max_abs_delta=0.068343189453131 (tile may be chip not full map),max_abs_delta=0.068343189453131 (tile may be chip not full map)
+investigate,satellite_bounds_csv_mismatch,satellite_bounds_csv_mismatch,09,satellite09_02-01.tif,max_abs_delta=0.06819180957031179 (tile may be chip not full map),max_abs_delta=0.06819180957031179 (tile may be chip not full map)
+investigate,satellite_bounds_csv_mismatch,satellite_bounds_csv_mismatch,09,satellite09_02-02.tif,max_abs_delta=0.068343189453131 (tile may be chip not full map),max_abs_delta=0.068343189453131 (tile may be chip not full map)
+investigate,uav_count_mismatch_vs_docs,uav_count_mismatch_vs_docs,ALL,jpg_count,actual=6774 documented=6742,actual=6774 documented=6742

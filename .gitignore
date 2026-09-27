@@ -1,0 +1,9 @@
+datasets/raw/
+datasets/sample/
+datasets/full/
+datasets/cache/
+__pycache__/
+*.pyc
+*.zip
+*.part
+results/logs/

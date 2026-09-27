@@ -1,0 +1,14 @@
+record_type,group_id,threshold_m,member_regions,member_labels,n_groups,rule
+sensitivity,,0,01|02|03|04|05|06|07|08+09|10|11,,10,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+sensitivity,,1000,01|02|03|04|05|06|07+10|08+09|11,,9,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+sensitivity,,5000,01+02|03+04|05|06|07+10|08+09|11,,7,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+sensitivity,,10000,01+02|03+04|05|06|07+10|08+09|11,,7,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+sensitivity,,25000,01+02|03+04|05|06|07+10|08+09|11,,7,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+sensitivity,,50000,01+02|03+04|05|06|07+10|08+09|11,,7,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+primary_group,1,5000,01+02,Changjiang-20+Changjiang-23,,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+primary_group,2,5000,03+04,Taizhou-1+Taizhou-6,,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+primary_group,3,5000,05,Yunnan,,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+primary_group,4,5000,06,Zhuxi,,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+primary_group,5,5000,07+10,Donghuayuan+Huailai,,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+primary_group,6,5000,08+09,Huzhou-3+Huzhou-3,,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map
+primary_group,7,5000,11,Shandan,,union if map intersection OR min boundary distance <= threshold; if threshold>=5000m also merge if >=5% flight points in other map

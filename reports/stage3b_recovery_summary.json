@@ -1,0 +1,92 @@
+{
+  "decision": "READY",
+  "gate_mode": "dinov2_c2f",
+  "val": {
+    "dinov2_global": {
+      "n": 30,
+      "success_100m": 7,
+      "failure_100m": 23,
+      "success_500m": 8,
+      "median_error_m": 2161.487,
+      "topk_recall": 0.5666666666666667,
+      "mean_runtime_s": 3.2424666666666666
+    },
+    "dinov2_c2f": {
+      "n": 30,
+      "success_100m": 9,
+      "failure_100m": 21,
+      "success_500m": 13,
+      "median_error_m": 1178.129,
+      "topk_recall": 0.5666666666666667,
+      "mean_runtime_s": 10.345633333333334
+    }
+  },
+  "compare_stage3a_queries": {
+    "pyramid_ncc_rot4": {
+      "n": 100,
+      "success_100m": 0,
+      "failure_100m": 100,
+      "success_500m": 2,
+      "median_error_m": 3295.831,
+      "topk_recall": 0.0,
+      "mean_runtime_s": 2.23829
+    },
+    "dinov2_global": {
+      "n": 100,
+      "success_100m": 8,
+      "failure_100m": 92,
+      "success_500m": 16,
+      "median_error_m": 2095.918,
+      "topk_recall": 0.44,
+      "mean_runtime_s": 0.9808199999999999
+    },
+    "dinov2_c2f": {
+      "n": 100,
+      "success_100m": 13,
+      "failure_100m": 87,
+      "success_500m": 31,
+      "median_error_m": 1578.5635,
+      "topk_recall": 0.44,
+      "mean_runtime_s": 3.8266000000000004
+    }
+  },
+  "human_visual_review": [
+    {
+      "filename": "03_0257.JPG",
+      "error_m": 18.842,
+      "human_visual_credible_100m": 1,
+      "note": "pred\u2248GT; intersection/buildings align"
+    },
+    {
+      "filename": "03_0709.JPG",
+      "error_m": 23.408,
+      "human_visual_credible_100m": 1,
+      "note": "pred\u2248GT; highway/water features align"
+    },
+    {
+      "filename": "03_0168.JPG",
+      "error_m": 11.733,
+      "human_visual_credible_100m": 1,
+      "note": "pred\u2248GT; red/blue roof block aligns"
+    },
+    {
+      "filename": "03_0441.JPG",
+      "error_m": 40.379,
+      "human_visual_credible_100m": 1,
+      "note": "pred\u2248GT; shore/forest/highway corridor"
+    },
+    {
+      "filename": "03_0326.JPG",
+      "error_m": 50.706,
+      "human_visual_credible_100m": 1,
+      "note": "pred\u2248GT; tree-line/river industrial shore"
+    },
+    {
+      "filename": "03_0014.JPG",
+      "error_m": 5654.015,
+      "human_visual_credible_100m": 0,
+      "note": "catastrophic; pred is empty grassland vs urban bridge"
+    }
+  ],
+  "splits_frozen_at": "2026-09-24T03:16:52.758184+00:00"
+}

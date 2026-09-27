@@ -1,0 +1,2 @@
+region,mode,n,success_100m,failure_100m,success_rate_100m,median_error_m,mean_error_m,p90_error_m,success_25m,success_50m,success_200m,mean_runtime_s
+03,dino_fine,100,8,92,0.08,2013.4875000000002,2003.6786799999995,4274.135800000001,4,5,24,4.3983799999999995

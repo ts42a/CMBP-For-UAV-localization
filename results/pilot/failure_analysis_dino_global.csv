@@ -1,0 +1,16 @@
+filename,mode,error_m,gt_in_topk_rank,failure_code,notes
+03_0033.JPG,dino_global,74.979,4,retrieval_hit_but_rerank_fail,Heuristic; dev region only.
+03_0449.JPG,dino_global,89.05,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0257.JPG,dino_global,93.355,1,success_verify,Heuristic; dev region only.
+03_0577.JPG,dino_global,99.854,14,retrieval_hit_but_rerank_fail,Heuristic; dev region only.
+03_0529.JPG,dino_global,104.303,11,retrieval_hit_but_rerank_fail,Heuristic; dev region only.
+03_0249.JPG,dino_global,4474.204,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0768.JPG,dino_global,4824.24,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0177.JPG,dino_global,4903.612,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0049.JPG,dino_global,4932.001,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0593.JPG,dino_global,4947.716,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0345.JPG,dino_global,4948.001,16,retrieval_hit_but_rerank_fail,Heuristic; dev region only.
+03_0401.JPG,dino_global,5045.226,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0585.JPG,dino_global,5345.903,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0385.JPG,dino_global,5446.965,,retrieval_miss_or_georef,Heuristic; dev region only.
+03_0001.JPG,dino_global,7350.629,,retrieval_miss_or_georef,Heuristic; dev region only.

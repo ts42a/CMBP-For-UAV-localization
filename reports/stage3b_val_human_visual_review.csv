@@ -1,0 +1,7 @@
+filename,error_m,human_visual_credible_100m,note
+03_0257.JPG,18.842,1,pred≈GT; intersection/buildings align
+03_0709.JPG,23.408,1,pred≈GT; highway/water features align
+03_0168.JPG,11.733,1,pred≈GT; red/blue roof block aligns
+03_0441.JPG,40.379,1,pred≈GT; shore/forest/highway corridor
+03_0326.JPG,50.706,1,pred≈GT; tree-line/river industrial shore
+03_0014.JPG,5654.015,0,catastrophic; pred is empty grassland vs urban bridge
