@@ -1,0 +1,29 @@
+{
+  "started_at": "2026-09-27T01:54:39.728037+00:00",
+  "git_commit": "a4ab63a999932af735e1efaec644f89ad90e56a6",
+  "git_dirty_scripts_or_configs": false,
+  "config_sha256": "5083e3b70c870ca8b3dea50760509af7ff22df3aafc67b0a278a2469a468744f",
+  "prereg_sha256": "75acfb29d7feb8dc98bec25eb34cdae19b233335af875ea4f038d17a0266ee3b",
+  "splits_sha256": "b46407a738e649ed994c4fe6382110d065282f8ecc882ffddd4fad35875553b7",
+  "accept_rule": "homography_12",
+  "args": {
+    "set": "stage4",
+    "out": "results/stage4/checks/control",
+    "resume": false,
+    "radii": "100",
+    "k": null,
+    "zero_offset": false,
+    "control_offset_m": 2000.0,
+    "n_frames": 5,
+    "regions": "all",
+    "per_region": 10,
+    "select_seed": 20260927,
+    "max_frames": null
+  },
+  "radii_m": [
+    100
+  ],
+  "offsets_per_radius": 1,
+  "variant": "control2000",
+  "n_frames": 5
+}
