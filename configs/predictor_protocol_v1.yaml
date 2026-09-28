@@ -1,0 +1,103 @@
+schema_version: predictor_protocol_v1
+status: frozen_before_predictor_runs
+purpose: >
+  Fixes the Stage 6-8 features, models, calibration and metrics before any predictor is
+  fitted or evaluated. Values are not changed after seeing predictor results; any change
+  is logged as a deviation in configs/preregistration_v1.yaml with a date and reason.
+scope: >
+  Pilot function check on the Stage 5 pilot labels (10 frames per region). Not a
+  geographic result. The same protocol applies unchanged to the full labels later.
+
+inputs:
+  outcomes: results/stage5/pilot/outcomes.csv
+  prereg: configs/preregistration_v1.yaml
+  splits: configs/splits_v1.json
+  scheme: primary_7group
+  excluded_regions: ['07']  # deviation D2
+  localizer_dev_regions: ['03']
+
+label:
+  positive: outcome_primary == accepted_correct
+  tolerance_m: 100
+  unit: one row per windowed attempt (region, filename, radius_m, offset_k)
+
+predictor_inputs:
+  allowed: prior centre (center_lat, center_lon), radius_m, satellite map of the region
+  forbidden: ground-truth position, UAV image, any localizer output (scores, inliers, errors)
+
+tiling:
+  tile_size_px: 1024
+  stride_px: 512
+  window_membership: tile centre within radius of the prior centre (same rule as the localizer)
+  nearest_tile: tile whose centre is closest to the prior centre (local equirectangular metres)
+
+texture_features:  # Stage 6
+  per_tile_preprocessing: RGB tile -> grey -> resize to 256 x 256 (INTER_AREA)
+  valid_pixel: any RGB channel > 0 (all-zero pixels are nodata)
+  per_tile:
+    entropy: Shannon entropy (bits) of the 256-bin grey histogram over valid pixels
+    edge_density: fraction of valid pixels marked by Canny(50, 150)
+    grad_mean: mean Sobel gradient magnitude (ksize 3) over valid pixels
+    lap_var: variance of the Laplacian (ksize 3) over valid pixels
+    valid_frac: fraction of valid pixels
+  aggregation: window mean of each per-tile feature, plus the nearest-tile value
+  empty_window: window-mean features take the nearest-tile value
+  extra: [log_radius, n_window_tiles]
+
+dino_features:  # Stage 7
+  source: cached tile embeddings datasets/cache/embeddings/region<RR>_dinov2_vits14_224.npz (L2-normalised, 384-d)
+  vectors: nearest-tile embedding and window-mean embedding (nearest tile if the window is empty)
+  reduction: PCA(16) per vector type, fitted on training rows only
+  extra: [log_radius, n_window_tiles]
+
+distinctiveness:  # Stage 7
+  reference: nearest tile to the prior centre
+  search_extent_m: radius_m + 450   # half the widest verifier context crop (3 x ~300 m tile)
+  exclusion_m: 400                  # tile footprint ~300 m + primary tolerance 100 m
+  competitors: tiles with centre within search_extent_m of the prior centre and more than exclusion_m from the reference tile centre
+  features:
+    distinct_max: 1 - max cosine(reference, competitors)
+    distinct_top5: 1 - mean of the top-5 cosines (fewer if fewer competitors)
+    no_competitor: 1 if there are no competitors, else 0
+  no_competitor_value: distinct_max = distinct_top5 = 1.0
+
+models:
+  M0_constant: training-set positive frequency
+  M1_texture: StandardScaler + LogisticRegression(C=1.0, L2, lbfgs, max_iter=2000) on texture features
+  M2_dino: StandardScaler + PCA(16) per vector type + [log_radius, n_window_tiles] + LogisticRegression(C=1.0)
+  M3_dino_distinct: M2 inputs + [distinct_max, distinct_top5, no_competitor] + LogisticRegression(C=1.0)
+  tuning: none (fixed hyperparameters)
+  fitting_scope: every scaler, PCA and model is fitted on training rows of the current fold only
+
+cross_fitting:
+  outer: leave-one-group-out over the primary_7group outer_folds
+  inner: the outer fold's inner_folds from splits_v1.json produce out-of-fold (OOF) predictions for every source row
+  single_class_fit: if a fit set has one class, predict its constant frequency
+
+calibration:  # Stage 8
+  candidates: [platt, isotonic]
+  platt: LogisticRegression on logit(raw p), C=1e6
+  isotonic: IsotonicRegression(out_of_bounds=clip, y_min=1e-3, y_max=1-1e-3)
+  selection: >
+    Leave-one-inner-group-out over the source OOF predictions: fit each calibrator on the
+    other inner groups, score log loss on the held-out inner group, choose the lower mean.
+    Ties -> platt. Selection uses source rows only.
+  final: chosen calibrator refit on all source OOF predictions, applied to the test group's raw predictions
+  apply_to: [M1_texture, M2_dino, M3_dino_distinct]
+
+metrics:
+  discrimination: [auroc, pr_auc]  # undefined (reported as null) when a fold has one class
+  probability: [brier, log_loss, ece]
+  ece_bins: 10 equal-width  # preregistration_v1 stage8
+  prob_clip: [1.0e-6, 0.999999]  # for log loss
+  reporting: per fold, macro over folds where defined, pooled over all test rows
+  separate: fold G2 (contains localizer-dev region 03) reported separately as well as included
+  bootstrap: resample region groups with replacement, 1000 reps, seed 20260928, percentile 95% CI
+
+controls:
+  shuffle_labels: permute labels within each training group (seed 20260928) and refit M1; macro AUROC expected near 0.5
+
+checks:
+  - distinctiveness vs radius plotted (must not simply track window size)
+  - no test-group row in any scaler, PCA, model or calibrator fit set (asserted)
+  - one protocol sha256 in every output

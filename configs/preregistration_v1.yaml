@@ -104,3 +104,23 @@ deviations:
     data_used: region 03 tune_queries only; criteria declared first in reports/verifier_switch_protocol.md (commit 2117406)
     held_out_regions_seen: none (the 11-region smoke looked at mechanics only)
     followed_by: Stage 3B val gate rerun on untouched val; Stage 4 checks rerun
+  - id: D2
+    date: '2026-09-28'
+    type: region exclusion (map geometry), Stages 6-9
+    change: >
+      Region 07 is excluded from predictor training, calibration, evaluation and replay
+      (Stages 6-9). Splits are unchanged; group G5 becomes region 10 alone. The localizer,
+      accept rule, tolerances and Stage 5 labels are unchanged.
+    reason: >
+      The region 07 satellite map is a 170 x 3000 px strip (about 50 m x 900 m), narrower
+      than the ground footprint of its low-altitude frames, so the map cannot contain the
+      query scene. Flagged as a usability concern at Stage 2 (reports/progress.md limitation 6)
+      before any outcome was generated.
+    disclosure: >
+      The exclusion was confirmed after the Stage 5 pilot outcomes had been seen (region 07:
+      0/90 accepted; reports/stage5_pilot_decision.md). The deciding evidence is map geometry,
+      not outcomes, but the timing is recorded. Region 10, which also had 0/90 accepted, is
+      kept because its map does cover the footprint.
+    data_used: Stage 2 map extents; by-eye check of region 07 pilot panels
+    held_out_regions_seen: Stage 5 pilot outcomes, all regions
+    followed_by: configs/predictor_protocol_v1.yaml (Stages 6-8 frozen before any predictor run)
