@@ -1,0 +1,14 @@
+{
+  "created_at": "2026-09-28T12:52:17.208654+00:00",
+  "git_commit": "2d34e3d62c7cae1a8fc8646793dda442e00f6437",
+  "git_dirty_scripts_or_configs": true,
+  "protocol_sha256": "90efed076da2a50e8d8dfe30354315c3c4cf87c3705bcb8b32338c38e496baec",
+  "prereg_sha256": "ca855845d8daf17bc7782bba4e506eed90546539422ffa621f866a2244f1f4b8",
+  "outcomes_path": "results/stage5/pilot/outcomes.csv",
+  "outcomes_sha256": "b053796e83b7f016c785efe417a26eafdca9f8a5514b81800442ba8ff4d6e067",
+  "excluded_regions": [
+    "07"
+  ],
+  "n_rows": 900,
+  "embeddings_row_order": "same as features.csv"
+}
