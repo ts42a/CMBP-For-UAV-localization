@@ -1,0 +1,32 @@
+{
+  "started_at": "2026-09-28T02:37:36.955185+00:00",
+  "git_commit": "57b9df2d5f423c5db6b4ef326cc2267c4e0e6ed3",
+  "git_dirty_scripts_or_configs": false,
+  "config_path": "configs/matcher_stage4_frozen.yaml",
+  "config_sha256": "abfc07a4d6d3269ff40d20261ebfbfb0523b380943fd34ed71e3f43415a27f97",
+  "prereg_sha256": "acd72328377d5594f035ae18c9f7c287e1c067566b9522e2bebe7b50fd8f874d",
+  "splits_sha256": "b46407a738e649ed994c4fe6382110d065282f8ecc882ffddd4fad35875553b7",
+  "accept_rule": "patch_20",
+  "args": {
+    "set": "stage4",
+    "out": "results/stage4/checks/zero_a",
+    "resume": false,
+    "radii": "100",
+    "k": null,
+    "zero_offset": true,
+    "control_offset_m": null,
+    "n_frames": 5,
+    "regions": "all",
+    "per_region": 10,
+    "select_seed": 20260927,
+    "max_frames": null,
+    "matcher_config": null,
+    "accept_rule": null
+  },
+  "radii_m": [
+    100
+  ],
+  "offsets_per_radius": 1,
+  "variant": "zero",
+  "n_frames": 5
+}

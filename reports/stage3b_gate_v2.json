@@ -1,0 +1,63 @@
+{
+  "gate": "PASS",
+  "matcher_config": "configs/matcher_stage4_frozen.yaml",
+  "config_sha256": "abfc07a4d6d3269ff40d20261ebfbfb0523b380943fd34ed71e3f43415a27f97",
+  "accept_rule": "patch_20",
+  "checks": {
+    "n_val_30": {
+      "value": 30,
+      "pass": true
+    },
+    "accepted_correct_ge_5": {
+      "value": 17,
+      "pass": true
+    },
+    "precision_ge_0.80": {
+      "value": 0.944,
+      "pass": true
+    },
+    "mix_present": {
+      "value": {
+        "rejected": 12,
+        "accepted_incorrect": 1
+      },
+      "pass": true
+    },
+    "search_used_gt_position_0": {
+      "value": 0,
+      "pass": true
+    },
+    "exact_csv_copies_0": {
+      "value": 0,
+      "pass": true
+    },
+    "visual_ge_0.80": {
+      "value": {
+        "panels": 17,
+        "yes": 17,
+        "fraction": 1.0
+      },
+      "pass": true
+    }
+  },
+  "accepted_correct_errors_m": [
+    6.992,
+    7.81,
+    14.529,
+    16.741,
+    16.876,
+    17.857,
+    18.065,
+    20.759,
+    22.72,
+    23.669,
+    28.915,
+    29.945,
+    30.201,
+    30.869,
+    37.985,
+    39.611,
+    40.482
+  ],
+  "reference_stage3b_akaze": "9/30 within 100 m counting unverified tile-centre fallbacks; 2/30 homography-verified"
+}
