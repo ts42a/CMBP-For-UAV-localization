@@ -1,0 +1,334 @@
+{
+  "run_dir": "results/stage5/pilot",
+  "n_rows": 990,
+  "n_frames": 110,
+  "regions": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11"
+  ],
+  "single_config_and_prereg_hash": true,
+  "accept_rule": [
+    "patch_20"
+  ],
+  "pooled": {
+    "n": 990,
+    "accepted_correct": 442,
+    "rejected": 539,
+    "accepted_incorrect": 9,
+    "accepted_correct_rate": 0.4465,
+    "accepted_incorrect_rate": 0.0091,
+    "precision": 0.98
+  },
+  "pooled_excluding_localizer_dev_region": {
+    "n": 900,
+    "accepted_correct": 357,
+    "rejected": 534,
+    "accepted_incorrect": 9,
+    "accepted_correct_rate": 0.3967,
+    "accepted_incorrect_rate": 0.01,
+    "precision": 0.9754
+  },
+  "localizer_dev_regions": [
+    "03"
+  ],
+  "secondary_tolerances_accepted_correct_rate": {
+    "25m": 0.204,
+    "50m": 0.3909
+  },
+  "by_radius": {
+    "100": {
+      "n": 330,
+      "accepted_correct": 150,
+      "rejected": 180,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.4545,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "1000": {
+      "n": 330,
+      "accepted_correct": 131,
+      "rejected": 193,
+      "accepted_incorrect": 6,
+      "accepted_correct_rate": 0.397,
+      "accepted_incorrect_rate": 0.0182,
+      "precision": 0.9562
+    },
+    "300": {
+      "n": 330,
+      "accepted_correct": 161,
+      "rejected": 166,
+      "accepted_incorrect": 3,
+      "accepted_correct_rate": 0.4879,
+      "accepted_incorrect_rate": 0.0091,
+      "precision": 0.9817
+    }
+  },
+  "by_offset_bin": {
+    "0-0.5R": {
+      "n": 369,
+      "accepted_correct": 193,
+      "rejected": 172,
+      "accepted_incorrect": 4,
+      "accepted_correct_rate": 0.523,
+      "accepted_incorrect_rate": 0.0108,
+      "precision": 0.9797
+    },
+    "0.5-1R": {
+      "n": 476,
+      "accepted_correct": 209,
+      "rejected": 263,
+      "accepted_incorrect": 4,
+      "accepted_correct_rate": 0.4391,
+      "accepted_incorrect_rate": 0.0084,
+      "precision": 0.9812
+    },
+    "1-1.5R": {
+      "n": 139,
+      "accepted_correct": 39,
+      "rejected": 99,
+      "accepted_incorrect": 1,
+      "accepted_correct_rate": 0.2806,
+      "accepted_incorrect_rate": 0.0072,
+      "precision": 0.975
+    },
+    "1.5-99R": {
+      "n": 6,
+      "accepted_correct": 1,
+      "rejected": 5,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.1667,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    }
+  },
+  "by_truth_within_radius": {
+    "0": {
+      "n": 145,
+      "accepted_correct": 40,
+      "rejected": 104,
+      "accepted_incorrect": 1,
+      "accepted_correct_rate": 0.2759,
+      "accepted_incorrect_rate": 0.0069,
+      "precision": 0.9756
+    },
+    "1": {
+      "n": 845,
+      "accepted_correct": 402,
+      "rejected": 435,
+      "accepted_incorrect": 8,
+      "accepted_correct_rate": 0.4757,
+      "accepted_incorrect_rate": 0.0095,
+      "precision": 0.9805
+    }
+  },
+  "by_region": {
+    "01": {
+      "n": 90,
+      "accepted_correct": 38,
+      "rejected": 52,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.4222,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "02": {
+      "n": 90,
+      "accepted_correct": 30,
+      "rejected": 60,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.3333,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "03": {
+      "n": 90,
+      "accepted_correct": 85,
+      "rejected": 5,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.9444,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "04": {
+      "n": 90,
+      "accepted_correct": 74,
+      "rejected": 16,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.8222,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "05": {
+      "n": 90,
+      "accepted_correct": 24,
+      "rejected": 63,
+      "accepted_incorrect": 3,
+      "accepted_correct_rate": 0.2667,
+      "accepted_incorrect_rate": 0.0333,
+      "precision": 0.8889
+    },
+    "06": {
+      "n": 90,
+      "accepted_correct": 5,
+      "rejected": 79,
+      "accepted_incorrect": 6,
+      "accepted_correct_rate": 0.0556,
+      "accepted_incorrect_rate": 0.0667,
+      "precision": 0.4545
+    },
+    "07": {
+      "n": 90,
+      "accepted_correct": 0,
+      "rejected": 90,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.0,
+      "accepted_incorrect_rate": 0.0,
+      "precision": null
+    },
+    "08": {
+      "n": 90,
+      "accepted_correct": 55,
+      "rejected": 35,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.6111,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "09": {
+      "n": 90,
+      "accepted_correct": 51,
+      "rejected": 39,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.5667,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "10": {
+      "n": 90,
+      "accepted_correct": 0,
+      "rejected": 90,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.0,
+      "accepted_incorrect_rate": 0.0,
+      "precision": null
+    },
+    "11": {
+      "n": 90,
+      "accepted_correct": 80,
+      "rejected": 10,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.8889,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    }
+  },
+  "by_group_7": {
+    "G1": {
+      "n": 180,
+      "accepted_correct": 68,
+      "rejected": 112,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.3778,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "G2": {
+      "n": 180,
+      "accepted_correct": 159,
+      "rejected": 21,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.8833,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "G3": {
+      "n": 90,
+      "accepted_correct": 24,
+      "rejected": 63,
+      "accepted_incorrect": 3,
+      "accepted_correct_rate": 0.2667,
+      "accepted_incorrect_rate": 0.0333,
+      "precision": 0.8889
+    },
+    "G4": {
+      "n": 90,
+      "accepted_correct": 5,
+      "rejected": 79,
+      "accepted_incorrect": 6,
+      "accepted_correct_rate": 0.0556,
+      "accepted_incorrect_rate": 0.0667,
+      "precision": 0.4545
+    },
+    "G5": {
+      "n": 180,
+      "accepted_correct": 0,
+      "rejected": 180,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.0,
+      "accepted_incorrect_rate": 0.0,
+      "precision": null
+    },
+    "G6": {
+      "n": 180,
+      "accepted_correct": 106,
+      "rejected": 74,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.5889,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    },
+    "G7": {
+      "n": 90,
+      "accepted_correct": 80,
+      "rejected": 10,
+      "accepted_incorrect": 0,
+      "accepted_correct_rate": 0.8889,
+      "accepted_incorrect_rate": 0.0,
+      "precision": 1.0
+    }
+  },
+  "checks": {
+    "prevalence_in_band": true,
+    "prevalence_band": [
+      0.15,
+      0.85
+    ],
+    "accepted_correct_nonincreasing_with_offset": true,
+    "regions_in_band": "6/11",
+    "stage5_go": true
+  },
+  "informational_not_gating": {
+    "all_three_outcomes_present": true,
+    "accepted_correct_nonincreasing_with_radius": false,
+    "note": "plan prose also expects the radius trend; only the offset trend and prevalence band are frozen in preregistration_v1.yaml stage5_go."
+  },
+  "gallery": [
+    "accepted_correct_01_0082_R100_k0.jpg",
+    "accepted_correct_03_0461_R100_k2.jpg",
+    "accepted_correct_04_0664_R100_k1.jpg",
+    "accepted_correct_09_0306_R100_k2.jpg",
+    "rejected_01_0082_R1000_k2.jpg",
+    "rejected_05_0047_R100_k1.jpg",
+    "rejected_06_0344_R100_k2.jpg",
+    "rejected_09_0077_R1000_k1.jpg",
+    "accepted_incorrect_05_0236_R1000_k0.jpg",
+    "accepted_incorrect_05_0236_R1000_k1.jpg",
+    "accepted_incorrect_05_0236_R1000_k2.jpg",
+    "accepted_incorrect_06_0172_R300_k0.jpg",
+    "accepted_incorrect_06_0172_R300_k1.jpg",
+    "accepted_incorrect_06_0172_R300_k2.jpg",
+    "accepted_incorrect_06_0172_R1000_k0.jpg",
+    "accepted_incorrect_06_0172_R1000_k1.jpg",
+    "accepted_incorrect_06_0172_R1000_k2.jpg"
+  ]
+}
