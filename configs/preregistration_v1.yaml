@@ -124,3 +124,24 @@ deviations:
     data_used: Stage 2 map extents; by-eye check of region 07 pilot panels
     held_out_regions_seen: Stage 5 pilot outcomes, all regions
     followed_by: configs/predictor_protocol_v1.yaml (Stages 6-8 frozen before any predictor run)
+  - id: D3
+    date: '2026-09-28'
+    type: predictor protocol revision after the pilot, before full-scale labels (Stage 8)
+    change: >
+      configs/predictor_protocol_v2.yaml supersedes predictor_protocol_v1.yaml. Primary calibrator
+      becomes fixed-effects Platt (slope from within-group variation with one intercept per source
+      group, clipped at >= 0; single pooled intercept at test time). The v1 pooled Platt/isotonic is
+      still run and reported as cal_v1_registered. Macro (per held-out group) AUROC/PR-AUC become the
+      headline; pooled AUROC/PR-AUC are secondary. Shuffle control averages 20 permutations.
+      Features, models, splits, label and tolerances unchanged.
+    reason: >
+      Stages 6-8 pilot (reports/stage6_8_pilot_decision.md): under leave-one-group-out the group-mean
+      OOF prediction is anti-correlated with source-group prevalence (constant model r = -0.93 to
+      -0.97), so the v1 pooled calibrator learned slopes <= 0 and inverted the ranking. v1 therefore
+      tests a cross-fitting artefact rather than H3.
+    data_used: Stage 5 pilot labels (all regions except 07) and the v1 pilot predictor outputs
+    held_out_regions_seen: pilot outcomes and v1 pilot predictor results, all regions
+    safeguards: >
+      Decided before any full-scale label exists; v1 results are kept and reported alongside v2;
+      the new calibrator uses source rows only; code verified to reproduce the v1 run exactly and to
+      recover a known within-group slope on synthetic data where pooled Platt fails.

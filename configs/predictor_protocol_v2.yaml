@@ -1,0 +1,77 @@
+schema_version: predictor_protocol_v2
+status: frozen_before_full_labels
+date: '2026-09-28'
+supersedes: configs/predictor_protocol_v1.yaml
+purpose: >
+  Revises the Stage 8 calibration, the headline metrics and the shuffle control after the
+  Stages 6-8 pilot function check, before any full-scale label exists. Everything not listed
+  under `changes` is identical to v1. Logged as deviation D3 in configs/preregistration_v1.yaml.
+reason: >
+  reports/stage6_8_pilot_decision.md. Under leave-one-group-out, the group-mean out-of-fold (OOF)
+  prediction is anti-correlated with each source group's success rate (constant model r = -0.93
+  to -0.97), because leaving a group out moves the training prevalence opposite to that group's
+  own prevalence. Region success rates span 0.00-0.94 and the map features do not explain that
+  spread, so the v1 pooled Platt calibrator learned slopes <= 0 and inverted the ranking. v1 then
+  tests that side-effect rather than whether source-fitted calibration transfers (H3). Pooled
+  AUROC is distorted by the same effect (constant model 0.155).
+
+changes:
+  - calibration: primary calibrator becomes fixed-effects Platt (below); the v1 selection is still run and reported as the registered comparison
+  - metrics: macro (per held-out group) is the headline for AUROC and PR-AUC; pooled AUROC and PR-AUC are reported only as secondary and marked unreliable under this split
+  - controls: shuffle control averaged over 20 permutations
+
+inputs:
+  outcomes: results/stage5/pilot/outcomes.csv
+  prereg: configs/preregistration_v1.yaml
+  splits: configs/splits_v1.json
+  scheme: primary_7group
+  excluded_regions: ['07']  # deviation D2
+  localizer_dev_regions: ['03']
+  features_protocol: configs/predictor_protocol_v1.yaml
+  features_protocol_sha256: 90efed076da2a50e8d8dfe30354315c3c4cf87c3705bcb8b32338c38e496baec
+
+label: unchanged from v1 (accepted_correct at 100 m; one row per windowed attempt)
+predictor_inputs: unchanged from v1 (prior centre, radius, satellite map only)
+features: unchanged from v1 (tiling, texture_features, dino_features, distinctiveness); feature files built under v1 are reused
+models: unchanged from v1 (M0_constant, M1_texture, M2_dino, M3_dino_distinct; fixed hyperparameters, no tuning)
+cross_fitting: unchanged from v1 (outer leave-one-group-out; inner_folds give OOF predictions)
+
+calibration:  # Stage 8
+  primary: fe_platt
+  fe_platt:
+    slope: >
+      LogisticRegression(C=10, fit_intercept=False, max_iter=5000) on [logit(OOF p), one-hot source group],
+      fitted on source rows of groups that contain both outcome classes (single-class groups carry
+      no within-group ranking information). The slope is the coefficient on logit(OOF p), so it is
+      learned from within-group variation only. A negative slope is clipped to 0: the calibrator
+      must not invert the predictor.
+    intercept: >
+      With the slope fixed, one intercept fitted by maximum likelihood on all source OOF rows
+      (all groups, including single-class ones), bounded search in [-20, 20].
+    apply: p_cal = sigmoid(slope * logit(raw test p) + intercept). No test-region labels or map statistics are used.
+    note: >
+      The test region's base rate cannot be known from source data, so the intercept is the source
+      average. Region-level miscalibration that remains is the RQ2 result, not something to remove.
+  registered_comparison: v1 calibration (Platt vs isotonic chosen by leave-one-inner-group-out log loss on pooled OOF), reported as cal_v1_registered
+  apply_to: [M1_texture, M2_dino, M3_dino_distinct]
+  logit_clip: [1.0e-6, 0.999999]
+
+metrics:
+  discrimination: [auroc, pr_auc]  # undefined (null) when a held-out group has one class
+  probability: [brier, log_loss, ece]
+  ece_bins: 10 equal-width  # preregistration_v1 stage8
+  prob_clip: [1.0e-6, 0.999999]
+  headline: macro over held-out groups (AUROC and PR-AUC over groups where defined), plus per group
+  pooled: Brier, log loss and ECE pooled over all test rows are reported; pooled AUROC and PR-AUC are secondary and flagged unreliable under leave-one-group-out
+  separate: fold G2 (contains localizer-dev region 03) reported separately as well as included
+  bootstrap: resample region groups with replacement, 1000 reps, seed 20260928, percentile 95% CI
+  h3_comparison: macro Brier and log loss, calibrated (fe_platt) vs raw, same predictor
+
+controls:
+  shuffle_labels: permute labels within each training group and refit M1, 20 permutations (seed 20260928); report mean and range of macro AUROC, expected near 0.5
+  shuffle_permutations: 20
+
+checks:
+  - no test-group row in any scaler, PCA, model or calibrator fit set (asserted)
+  - fe_platt is monotone non-decreasing, so its AUROC equals the raw AUROC in every two-class fold (asserted)
+  - one protocol sha256 in every output
