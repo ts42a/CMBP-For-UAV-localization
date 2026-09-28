@@ -13,3 +13,8 @@ Matchability level segmentation (MLSNet) on remote sensing reference imagery; ac
 
 ## Code collision
 `minghaidea/MLSNet` is an unrelated genomics model.
+
+## Retry 2026-09-28
+- OpenAlex now reports `is_oa: true` (hybrid, licence CC BY-NC-ND 4.0) but still `pdf_url: null` and `has_fulltext: false`.
+- ScienceDirect returns HTTP 403 to automated requests (bot blocking), so the PDF cannot be fetched from the pipeline.
+- **Action (manual):** open https://doi.org/10.1016/j.cja.2025.103719 in a browser, save the PDF to `sources/MLSNet_Yang2026.pdf`, then check its split protocol, calibration and labels against the four gap criteria in `reports/gap_decision.md`.

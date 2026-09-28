@@ -66,3 +66,43 @@ not an implementation bug. Under the plan's rule, it is not fixed on these resul
 Stages 6-8 pipeline runs end to end and passes its leakage checks. Calibration needs a protocol
 revision before the full run. Next in plan order: the Stage 10 Kaggle benchmark (the full
 labelling run needs ~150-200 CPU-hours) and H1 synthetic queries.
+
+---
+
+## Follow-up (same day): protocol v2 run — `reports/stage6_8_pilot_v2_summary.md`
+
+The calibration decision was taken as fixed-effects Platt (`configs/predictor_protocol_v2.yaml`,
+deviation D3, commit `b2bfdd6`), committed before the v2 run. Verification before running:
+
+| Check | Result |
+|---|---|
+| Refactored evaluator reproduces the v1 run | pass: `predictions.csv` and `metrics_per_fold.csv` byte-identical; every summary key equal |
+| fe_platt recovers a known within-group slope on synthetic data with an anti-correlated group term | pass: 1.04 for true 1.0, 0.50 for true 0.5; pooled Platt gives -0.40 / -0.52 |
+| Edge cases (no signal, single-class group, all-negative source) | pass: slope >= 0, output falls back to source prevalence |
+| No inversion on the pilot | pass: fe slopes positive in every fold (0.08-0.41); calibrated AUROC equals raw (asserted) |
+| Leakage asserts, one protocol hash, clean tree | pass (`results/stage8/pilot_v2/run_manifest.json`: `git_dirty_scripts_or_configs: false`) |
+
+**H3 on the pilot (function check):** fe_platt improves macro Brier and log loss over raw for
+all three predictors, and beats the v1 registered calibrator:
+
+| model | macro Brier raw → fe (v1) | macro log loss raw → fe (v1) |
+|---|---|---|
+| M1 texture | 0.320 → 0.291 (0.301) | 0.875 → 0.777 (0.802) |
+| M2 DINO | 0.287 → 0.283 (0.328) | 0.940 → 0.779 (0.877) |
+| M3 DINO + distinct | 0.293 → 0.285 (0.329) | 0.961 → 0.779 (0.878) |
+
+**Caveat:** calibrated predictors only match the constant baseline (M0 macro Brier 0.285, log
+loss 0.763). Most of the gain comes from shrinking overconfident raw scores toward the source
+average. The remaining error is the between-region base-rate spread (0.00-0.94), which no
+source-only calibrator can remove (pooled reliability panel: high-success regions G2 and G7 are
+predicted low). This is the expected shape of the RQ2 result.
+
+**Shuffle control resolved:** the within-group permutation stays below 0.5 across 20
+permutations (macro 0.43, range 0.40-0.46), while a global permutation of source labels gives
+0.50 (range 0.39-0.64; read-only diagnostic). The pipeline does not leak (a leak would push the
+control above 0.5). The within-group control is below 0.5 because permuting within groups keeps
+each group's success rate, and texture that marks a high-success region runs opposite to
+within-region success in G4 and G7: a between-region confound, reported as a finding.
+**Recommendation for the full run:** declare the global permutation as the leakage control and
+keep the within-group permutation as a confound diagnostic. This must be added to the protocol
+before the full labels exist.

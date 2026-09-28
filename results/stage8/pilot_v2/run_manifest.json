@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-09-28T13:08:24.721936+00:00",
+  "git_commit": "b2bfdd665a4347a6f65a23e21eefa8bea3bec008",
+  "git_dirty_scripts_or_configs": false,
+  "protocol_path": "configs/predictor_protocol_v2.yaml",
+  "protocol_sha256": "0318a65bf89b9811a5993fea66db0af6cced5feafb616df6311dc2ca0d4ea411",
+  "features_dir": "results/stage6_7/pilot",
+  "features_csv_sha256": "a526a3111e678bd4a9a3908b50aba267785e37d2f0c1a8da2580d703f1ada7e5"
+}
