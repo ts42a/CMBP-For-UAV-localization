@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Stage 3C — resumable full real-outcome labeling with the frozen dinov2_c2f matcher.
+"""SUPERSEDED 2026-09-28 (deviation D1): built on the pre-D1 `dinov2_c2f`/AKAZE
+matcher (configs/matcher_stage3b_frozen.yaml), which failed the Stage 4 zero-offset
+check (0/5) and was replaced by the DINOv2 patch verifier in
+configs/matcher_stage4_frozen.yaml. Do not run this for label generation.
+Use scripts/label_windowed.py instead (see reports/stage4_refreeze_decision.md).
+Kept only for provenance of the pre-D1 Stage 3C run.
+
+Stage 3C — resumable full real-outcome labeling with the frozen dinov2_c2f matcher.
 
 Usage:
   py -3 scripts/localization/stage3c_gate.py

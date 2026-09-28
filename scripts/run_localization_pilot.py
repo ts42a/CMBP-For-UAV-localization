@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Development-only localization pilot: baseline vs DINO retrieval vs DINO+AKAZE."""
+"""SUPERSEDED 2026-09-28 (deviation D1): early Stage 3A/3B development pilot, predates
+the frozen windowed pipeline and the DINOv2 patch verifier. Do not run this for label
+generation. Use scripts/label_windowed.py with configs/matcher_stage4_frozen.yaml.
+
+Development-only localization pilot: baseline vs DINO retrieval vs DINO+AKAZE."""
 from __future__ import annotations
 
 import argparse

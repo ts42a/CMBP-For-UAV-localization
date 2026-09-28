@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Stage 3B matcher recovery: tune on frozen tune-split, gate on untouched val-split.
+"""SUPERSEDED 2026-09-28 (deviation D1): selected `dinov2_c2f` over AKAZE-only, but
+`dinov2_c2f` itself failed the Stage 4 zero-offset check and was replaced by the
+DINOv2 patch verifier (configs/matcher_stage4_frozen.yaml). Kept for provenance of
+the Stage 3B candidate comparison only; do not run this for label generation.
+
+Stage 3B matcher recovery: tune on frozen tune-split, gate on untouched val-split.
 
 Candidates (max 2):
   A) dinov2_global — frozen DINOv2 ViT-S/14 cosine retrieval over full tile DB

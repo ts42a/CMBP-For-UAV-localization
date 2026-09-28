@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Stage 3C preflight gate: untouched Stage 3B val CSV only.
+"""SUPERSEDED 2026-09-28 (deviation D1): gates the pre-D1 `dinov2_c2f`/AKAZE matcher,
+which was replaced by the DINOv2 patch verifier (configs/matcher_stage4_frozen.yaml).
+Current val gate is scripts/protocol/stage3b_val_gate_v2.py. Kept for provenance only.
+
+Stage 3C preflight gate: untouched Stage 3B val CSV only.
 
 Human-reviewed scene matches are NOT used as the 100 m accuracy criterion.
 CSV coordinates may appear only as scoring columns.

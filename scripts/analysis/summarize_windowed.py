@@ -148,13 +148,23 @@ def main() -> int:
         r["_bin"] = next(f"{a:g}-{b:g}R" for a, b in OFFSET_BINS if a <= rel < b)
 
     pooled = breakdown(rs)
+    dev_regions = set(prereg["inputs"]["localizer_dev_regions"])
+    pooled_excl_dev = breakdown([r for r in rs if r["region"] not in dev_regions])
     by_bin = group_by(rs, lambda r: r["_bin"])
     bin_rates = [by_bin[f"{a:g}-{b:g}R"]["accepted_correct_rate"] for a, b in OFFSET_BINS if f"{a:g}-{b:g}R" in by_bin]
     monotonic = all(bin_rates[i] >= bin_rates[i + 1] for i in range(len(bin_rates) - 1))
+    by_radius = group_by(rs, lambda r: int(r["radius_m"]))
+    radius_rates = [v["accepted_correct_rate"] for _, v in sorted(by_radius.items())]
+    radius_nonincreasing = all(radius_rates[i] >= radius_rates[i + 1] for i in range(len(radius_rates) - 1))
     by_region = group_by(rs, lambda r: r["region"])
     in_band_regions = sum(band[0] <= v["accepted_correct_rate"] <= band[1] for v in by_region.values())
     prev = pooled["accepted_correct_rate"]
 
+    # Pre-registered stage5_go (configs/preregistration_v1.yaml: stage5_go) gates on
+    # prevalence_band and the offset monotonic_check only. Everything else here
+    # (dev-region split, radius trend, outcome-type presence) is reported for
+    # transparency but must not be added to the gate after the fact — see
+    # reports/stage5_go_protocol.md for why and what changes are still permitted.
     summary = {
         "run_dir": args.run_dir,
         "n_rows": len(rs),
@@ -163,8 +173,10 @@ def main() -> int:
         "single_config_and_prereg_hash": len(hashes) == 1,
         "accept_rule": sorted({r["accept_rule"] for r in rs}),
         "pooled": pooled,
+        "pooled_excluding_localizer_dev_region": pooled_excl_dev,
+        "localizer_dev_regions": sorted(dev_regions),
         "secondary_tolerances_accepted_correct_rate": secondary(rs, [float(t) for t in prereg["tolerances_m"]["secondary"]]),
-        "by_radius": group_by(rs, lambda r: int(r["radius_m"])),
+        "by_radius": by_radius,
         "by_offset_bin": by_bin,
         "by_truth_within_radius": group_by(rs, lambda r: int(r["truth_within_radius"])),
         "by_region": by_region,
@@ -174,11 +186,16 @@ def main() -> int:
             "prevalence_band": band,
             "accepted_correct_nonincreasing_with_offset": monotonic,
             "regions_in_band": f"{in_band_regions}/{len(by_region)}",
+        },
+        "informational_not_gating": {
             "all_three_outcomes_present": all(pooled[o] > 0 for o in OUTCOMES),
+            "accepted_correct_nonincreasing_with_radius": radius_nonincreasing,
+            "note": "plan prose also expects the radius trend; only the offset trend "
+                    "and prevalence band are frozen in preregistration_v1.yaml stage5_go.",
         },
     }
-    summary["checks"]["stage5_go"] = (summary["checks"]["prevalence_in_band"] and monotonic
-                                      and summary["checks"]["all_three_outcomes_present"])
+    # Gate strictly on the two criteria frozen in preregistration_v1.yaml stage5_go.
+    summary["checks"]["stage5_go"] = summary["checks"]["prevalence_in_band"] and monotonic
     if not args.no_gallery:
         summary["gallery"] = gallery(rs, ROOT / "figures" / args.name, args.gallery_per_type)
 
@@ -195,8 +212,13 @@ def main() -> int:
     md = [f"# {args.name} — windowed outcome summary", "",
           f"Rows {len(rs)}, frames {summary['n_frames']}, regions {', '.join(summary['regions'])}. "
           f"Accept rule `{summary['accept_rule']}`; primary tolerance {prereg['tolerances_m']['primary']} m.", "",
-          "## Checks", "", "```json", json.dumps(summary["checks"], indent=2), "```", ""]
-    md += tbl("Pooled", {"all": pooled})
+          "## Checks (gating — frozen in preregistration_v1.yaml stage5_go)", "",
+          "```json", json.dumps(summary["checks"], indent=2), "```", "",
+          "## Informational only — not part of the frozen gate", "",
+          "```json", json.dumps(summary["informational_not_gating"], indent=2), "```", ""]
+    md += tbl("Pooled (all regions, incl. localizer-dev region "
+              f"{', '.join(summary['localizer_dev_regions'])})", {"all": pooled})
+    md += tbl("Pooled excluding localizer-dev region (informational)", {"all": pooled_excl_dev})
     md += [f"Secondary tolerances (accepted-correct rate): {summary['secondary_tolerances_accepted_correct_rate']}", ""]
     md += tbl("By radius (m)", summary["by_radius"])
     md += tbl("By prior offset / radius", by_bin)

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Audit Stage 3C outcomes: counts, groups, inspection figures, report."""
+"""SUPERSEDED 2026-09-28 (deviation D1): audits outcomes from the pre-D1
+`dinov2_c2f`/AKAZE matcher. Current pipeline is scripts/label_windowed.py +
+scripts/analysis/summarize_windowed.py. Kept for provenance only.
+
+Audit Stage 3C outcomes: counts, groups, inspection figures, report."""
 from __future__ import annotations
 
 import csv
