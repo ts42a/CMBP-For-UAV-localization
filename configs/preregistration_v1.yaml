@@ -145,3 +145,18 @@ deviations:
       Decided before any full-scale label exists; v1 results are kept and reported alongside v2;
       the new calibrator uses source rows only; code verified to reproduce the v1 run exactly and to
       recover a known within-group slope on synthetic data where pooled Platt fails.
+  - id: D4
+    date: '2026-09-28'
+    type: control added to the predictor protocol, before full-scale labels (Stages 6-8)
+    change: >
+      configs/predictor_protocol_v3.yaml supersedes v2 and adds a declared leakage control: M1 refit
+      on globally permuted source labels, 20 permutations, pass if the mean macro AUROC is within
+      0.50 +/- 0.05. The v2 within-group permutation is kept, relabelled as a confound diagnostic
+      with no pass/fail. Calibration, models, features, metrics, splits and labels unchanged.
+    reason: >
+      Pilot (reports/stage6_8_pilot_decision.md, follow-up): the within-group permutation keeps each
+      group's success rate and sat at 0.43 over 20 permutations (between-region confound), so it
+      cannot test for leakage; a global permutation gave 0.50.
+    data_used: Stage 5 pilot labels and the v2 pilot predictor run
+    held_out_regions_seen: pilot outcomes and pilot predictor results, all regions
+    safeguards: Adds a check only; no estimate changes. Code verified to reproduce the v1 and v2 runs byte-for-byte.

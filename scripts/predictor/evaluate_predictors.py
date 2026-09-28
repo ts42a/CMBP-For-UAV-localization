@@ -165,11 +165,13 @@ def main() -> int:
     proto_path = ROOT / args.protocol
     proto = yaml.safe_load(proto_path.read_text(encoding="utf-8"))
     proto_sha = sha256(proto_path)
-    v2 = proto["schema_version"] == "predictor_protocol_v2"
+    # v2 and later share fixed-effects calibration; v3 adds the global-permutation leakage control.
+    v2 = proto["schema_version"] in ("predictor_protocol_v2", "predictor_protocol_v3")
     # Calibrated variants: name -> prediction column.
     cal_cols = {"cal_v1_registered": "p_cal_v1", "cal_v2_fe": "p_cal_fe"} if v2 else {"calibrated": "p_cal"}
     v1_name = "cal_v1_registered" if v2 else "calibrated"
     n_perm = int(proto["controls"].get("shuffle_permutations", 1))
+    n_leak = int(proto["controls"].get("leakage_permutations", 0))
 
     feat_dir = ROOT / args.features
     feat_manifest = json.loads((feat_dir / "run_manifest.json").read_text(encoding="utf-8"))
@@ -182,6 +184,7 @@ def main() -> int:
     rng = np.random.default_rng(seed)
 
     pred_rows, fold_rows, shuffle_auc, shuffle_perm, cal_choice = [], [], {}, {}, {}
+    leak_perm: dict[str, list[float]] = {}
     for fold in scheme["outer_folds"]:
         test_g = fold["fold_id"]
         te = np.flatnonzero(d.group == test_g)
@@ -238,6 +241,17 @@ def main() -> int:
                 aucs.append(float(roc_auc_score(d.y[te], p_sh)))
         shuffle_auc[test_g] = float(np.mean(aucs)) if aucs else None
         shuffle_perm[test_g] = aucs
+
+        # Leakage control (v3): permute all source labels together, refit M1. Runs after the
+        # within-group permutations so earlier protocol versions keep their random stream.
+        leak = []
+        for _ in range(n_leak):
+            y_sh = d.y.copy()
+            y_sh[src] = rng.permutation(d.y[src])
+            p_sh = fit_predict("M1_texture", d, src, te, y=y_sh)
+            if len(np.unique(d.y[te])) == 2:
+                leak.append(float(roc_auc_score(d.y[te], p_sh)))
+        leak_perm[test_g] = leak
 
         def cal_label(v: str, m: str) -> str:
             if v == "cal_v2_fe":
@@ -318,6 +332,16 @@ def main() -> int:
         "models": summary_models, "calibrator_choice": cal_choice,
         "shuffle_control_auroc": shuffle,
     }
+    if n_leak:
+        two = [f for f, a in leak_perm.items() if a]
+        per_perm_macro = [float(np.mean([leak_perm[f][k] for f in two])) for k in range(n_leak)]
+        mean = float(np.mean(per_perm_macro))
+        summary["leakage_control_auroc"] = {
+            "mode": "global permutation of source labels", "permutations": n_leak,
+            "per_fold_mean": {f: (float(np.mean(a)) if a else None) for f, a in leak_perm.items()},
+            "macro_mean": mean, "macro_min": min(per_perm_macro), "macro_max": max(per_perm_macro),
+            "pass_rule": proto["controls"]["leakage_pass"], "pass": abs(mean - 0.5) <= 0.05,
+        }
     if v2:
         summary["protocol"] = args.protocol
         summary["h3_macro"] = {
@@ -418,8 +442,15 @@ def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool) -> 
         md.append(f"| {m} | {var} | {auc_ci} |")
     sc = s["shuffle_control_auroc"]
     rng_txt = f", range over {sc['permutations']} permutations {fmt(sc['macro_min'])}–{fmt(sc['macro_max'])}" if "permutations" in sc else ""
-    md += ["", f"Shuffle control (M1, labels permuted within training groups): macro AUROC {fmt(sc['macro'])}{rng_txt} "
-           f"(per fold: {', '.join(f'{k} {fmt(v)}' for k, v in sc['per_fold'].items())}).", "",
+    lk = s.get("leakage_control_auroc")
+    if lk:
+        md += ["", f"**Leakage control** (M1, all source labels permuted together, {lk['permutations']} permutations): "
+               f"macro AUROC mean {fmt(lk['macro_mean'])}, range {fmt(lk['macro_min'])}–{fmt(lk['macro_max'])} — "
+               f"**{'PASS' if lk['pass'] else 'FAIL'}** ({lk['pass_rule']})."]
+    label = "Confound diagnostic" if lk else "Shuffle control"
+    md += ["", f"{label} (M1, labels permuted within training groups): macro AUROC {fmt(sc['macro'])}{rng_txt} "
+           f"(per fold: {', '.join(f'{k} {fmt(v)}' for k, v in sc['per_fold'].items())})"
+           + (" — keeps each group's success rate, so it measures between-region confounding, not leakage." if lk else ".") , "",
            "## Per held-out group", "",
            "| fold | regions | model | variant | n | prev. | AUROC | PR-AUC | Brier | log loss | ECE | calibrator |",
            "|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|"]
