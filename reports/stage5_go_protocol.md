@@ -5,6 +5,18 @@ of 11 complete at time of writing; process still active). Declared before the po
 Stage 5 numbers are inspected, per the pre-registration principle: fix decision rules
 before seeing results.
 
+## Disclosure (added 2026-09-28, same day)
+
+This document was **not** written blind to all pilot data. Before it was written,
+partial pilot rows for regions 01-02 (117 rows, 13 frames) had already been
+tabulated during a codebase review: 38.5% accepted-correct, 61.5% rejected,
+**0 accepted-incorrect**. The removal of the unregistered `all_three_outcomes_present`
+gate (Section 1) was therefore made after seeing partial data that would have failed
+it. The justification is that the gate was never in the frozen yaml, so the code is
+being brought back to the pre-registered rule rather than loosened beyond it, but
+readers should weigh that timing. No other regions (03-11) had been inspected when
+this document was written.
+
 ## 1. Gating criteria — unchanged from `configs/preregistration_v1.yaml` `stage5_go`
 
 Only two checks decide go/no-go:
