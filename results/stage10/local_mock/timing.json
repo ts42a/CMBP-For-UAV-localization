@@ -1,0 +1,17 @@
+{
+  "import_torch_s": 1.941,
+  "model_load_s": 2.56,
+  "label_run_s": 164.465,
+  "gpu_peak_mem_mib_labelling": null,
+  "embedding_bench": {
+    "region": "10",
+    "tiles": 88,
+    "map_km2": 2.259,
+    "seconds": 4.509,
+    "s_per_tile": 0.0512,
+    "s_per_km2": 1.996,
+    "max_abs_diff_vs_pc_cache": 0.0,
+    "min_cosine_vs_pc_cache": 0.9999998211860657
+  },
+  "total_runner_s": 177.686
+}

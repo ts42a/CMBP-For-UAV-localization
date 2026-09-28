@@ -1,0 +1,97 @@
+{
+  "run_dir": "C:/Users/tonmo/AppData/Local/Temp/claude/f--CMBL/6455bdd3-fc25-45e6-9e03-eb5d2cb17191/scratchpad/mock/CMBL/results/stage10/local_mock",
+  "checks": {
+    "n_attempts": 18,
+    "n_frames": 2,
+    "expected_frames": 2,
+    "expected_attempts": 18,
+    "no_duplicate_keys": true,
+    "all_keys_in_reference": true,
+    "config_sha256_matches_reference": true,
+    "complete": true,
+    "outcome_disagreements": 0,
+    "outcome_agreement_frac": 1.0,
+    "outcome_criterion_pass": true,
+    "both_accepted": 13,
+    "position_within_5m": 13,
+    "position_max_diff_m": 0.0,
+    "position_criterion_pass": true,
+    "agreement_pass": true
+  },
+  "disagreements": [],
+  "timing_run": {
+    "attempt_wall_by_radius": {
+      "100": {
+        "median_s": 0.554,
+        "mean_s": 0.962
+      },
+      "300": {
+        "median_s": 6.516,
+        "mean_s": 8.576
+      },
+      "1000": {
+        "median_s": 16.064,
+        "mean_s": 15.454
+      }
+    },
+    "attempt_wall_mean_s": 8.331,
+    "frame_setup_mean_s": 4.748,
+    "frame_total_mean_s": 79.72,
+    "frame_total_median_s": 79.72
+  },
+  "timing_pc_reference_same_keys": {
+    "attempt_wall_by_radius": {
+      "100": {
+        "median_s": 0.789,
+        "mean_s": 1.22
+      },
+      "300": {
+        "median_s": 8.435,
+        "mean_s": 10.766
+      },
+      "1000": {
+        "median_s": 18.55,
+        "mean_s": 17.965
+      }
+    },
+    "attempt_wall_mean_s": 9.984,
+    "frame_setup_mean_s": 5.974,
+    "frame_total_mean_s": 95.83,
+    "frame_total_median_s": 95.83
+  },
+  "env": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.14.7",
+    "torch": "2.12.1+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "gpu": null,
+    "nvidia_smi": null,
+    "cpu_count": 16,
+    "tf32_matmul": false,
+    "tf32_cudnn": false,
+    "bundle_commit": "428c36254ecc92588f117d86433fa626853ff0f8",
+    "wiring": {
+      "dataset": "junction",
+      "embeddings": "junction"
+    },
+    "device_arg": "cpu"
+  },
+  "runner_timing": {
+    "import_torch_s": 1.941,
+    "model_load_s": 2.56,
+    "label_run_s": 164.465,
+    "gpu_peak_mem_mib_labelling": null,
+    "embedding_bench": {
+      "region": "10",
+      "tiles": 88,
+      "map_km2": 2.259,
+      "seconds": 4.509,
+      "s_per_tile": 0.0512,
+      "s_per_km2": 1.996,
+      "max_abs_diff_vs_pc_cache": 0.0,
+      "min_cosine_vs_pc_cache": 0.9999998211860657
+    },
+    "total_runner_s": 177.686
+  }
+}
