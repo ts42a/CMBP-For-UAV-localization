@@ -1,0 +1,57 @@
+schema_version: stage10_benchmark_v1
+status: frozen_before_any_kaggle_run
+date: '2026-09-28'
+purpose: >
+  Plan Stage 10. Measure what the full run costs on Kaggle, check that Kaggle reproduces the PC
+  labels on the same frames, and decide whether to stay on Kaggle. Criteria are fixed here
+  before any Kaggle output exists.
+
+code:
+  localizer_tag: localizer-frozen-d1          # matcher + accept rule, unchanged
+  predictor_protocol: configs/predictor_protocol_v3.yaml
+  portability_fix: >
+    scripts/label_windowed.py falls back to datasets/raw/UAV_VisLoc_dataset/<region>/drone/<file>
+    when the manifest's absolute image_path does not exist. On the PC the stored path exists, so
+    behaviour is unchanged (verified: benchmark rows re-run on the PC are identical to the pilot rows).
+
+benchmark_set:
+  command: >
+    scripts/label_windowed.py --set pilot --per-region 2
+    --regions 01,02,03,04,05,06,08,09,10,11 --out <out> --resume
+  frames: 20   # 2 per region, region 07 excluded (D2); a subset of the Stage 5 pilot frames
+  attempts: 180   # 3 radii x 3 pre-registered offsets per frame
+  pc_reference: results/stage5/pilot/outcomes.csv (matching rows; generated at commit 7c1edc9)
+
+kaggle_runtime:
+  device: cuda if available (DinoGlobalEmbedder picks it automatically; no code change)
+  numerics: TF32 disabled for matmul and cuDNN; cudnn.benchmark off; float32 throughout
+  weights: DINOv2 ViT-S/14 from the uploaded torch hub cache (TORCH_HOME), so no internet is needed
+
+agreement_criteria:  # PC CPU reference vs Kaggle run, same 180 attempt keys
+  rules:
+    - same 180 keys, no duplicates, one config sha256 equal to the PC rows' config_sha256
+    - outcome_primary identical on >= 97% of attempts (at most 5 of 180 differ)
+    - where both runs accepted a fix, predicted positions within 5 m for >= 95% of those attempts
+    - every disagreement listed in the report and inspected
+  implemented_in: scripts/protocol/stage10_compare.py
+  on_fail: >
+    GPU labels are not equivalent to the PC labels the localizer was selected on. Do not start
+    the full run; decide between Kaggle CPU sessions or accepting GPU labels as a documented
+    deviation, before any full-scale label exists.
+
+measurements:
+  - environment setup (imports, model load) seconds
+  - data access (mount or download) seconds and GB
+  - "per frame: query setup seconds; per attempt: wall seconds by radius"
+  - GPU peak memory (torch.cuda.max_memory_allocated)
+  - "map feature extraction: seconds per tile and per km2 (re-embed region 10's tiles), and max abs difference to the PC cache"
+  - "cache size FP32 vs FP16; FP16 accepted only if the ordered retrieval top-20 candidate lists are identical for all 180 benchmark windows (scripts/protocol/check_fp16_cache.py, run on the PC)"
+
+projection:
+  script: scripts/protocol/cost_projection.py
+  workload:
+    full_labels: frames (regions except 07) x 9 attempts
+    h1_synthetic: same count as full_labels (matched sample counts, plan Stage 7)
+    replay: assumptions recorded in the cost sheet until Stage 9 fixes routes, drift levels, seeds, policies and budgets
+  safety_factor: 1.5
+  stay_on_kaggle_if: projected GPU hours <= 3 x the weekly GPU quota measured on the user's own account

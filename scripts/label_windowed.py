@@ -226,7 +226,11 @@ def main() -> int:
             print(f"region {region}: {len(tiles)} tiles", flush=True)
         index.clear_cache()
 
-        path = Path(q["image_path"]) if q.get("image_path") else DATASET_ROOT / region / "drone" / q["filename"]
+        # The manifest stores absolute paths from the machine that built it; fall back to the
+        # portable dataset layout when that path does not exist (e.g. on Kaggle).
+        path = Path(q["image_path"]) if q.get("image_path") else None
+        if path is None or not path.is_file():
+            path = DATASET_ROOT / region / "drone" / q["filename"]
         t0, c0 = time.perf_counter(), time.process_time()
         bgr = cv2.imread(str(path))
         if bgr is None:

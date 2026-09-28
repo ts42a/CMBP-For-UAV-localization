@@ -1,0 +1,75 @@
+{
+  "attempts": 180,
+  "identical_ordered_topk": 172,
+  "identical_topk_set": 180,
+  "max_abs_embedding_change": 8.296966552734375e-05,
+  "cache_bytes_fp32_npz": 25571295,
+  "cache_bytes_fp16_npz": 12730563,
+  "fp16_accepted": false,
+  "differences": [
+    {
+      "region": "01",
+      "filename": "01_0082.JPG",
+      "radius_m": "1000",
+      "offset_k": "0",
+      "top1_same": true,
+      "same_set": true
+    },
+    {
+      "region": "01",
+      "filename": "01_0082.JPG",
+      "radius_m": "1000",
+      "offset_k": "1",
+      "top1_same": true,
+      "same_set": true
+    },
+    {
+      "region": "01",
+      "filename": "01_0082.JPG",
+      "radius_m": "1000",
+      "offset_k": "2",
+      "top1_same": true,
+      "same_set": true
+    },
+    {
+      "region": "06",
+      "filename": "06_0172.JPG",
+      "radius_m": "300",
+      "offset_k": "0",
+      "top1_same": true,
+      "same_set": true
+    },
+    {
+      "region": "06",
+      "filename": "06_0172.JPG",
+      "radius_m": "1000",
+      "offset_k": "0",
+      "top1_same": true,
+      "same_set": true
+    },
+    {
+      "region": "06",
+      "filename": "06_0172.JPG",
+      "radius_m": "1000",
+      "offset_k": "1",
+      "top1_same": true,
+      "same_set": true
+    },
+    {
+      "region": "06",
+      "filename": "06_0172.JPG",
+      "radius_m": "1000",
+      "offset_k": "2",
+      "top1_same": true,
+      "same_set": true
+    },
+    {
+      "region": "11",
+      "filename": "11_0059.JPG",
+      "radius_m": "1000",
+      "offset_k": "0",
+      "top1_same": true,
+      "same_set": true
+    }
+  ]
+}
