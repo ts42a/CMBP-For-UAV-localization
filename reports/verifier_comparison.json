@@ -1,0 +1,58 @@
+{
+  "selected": {
+    "verifier": "patch_s23",
+    "rule": "patch_20"
+  },
+  "criteria": {
+    "1_accepted_correct_ge_2x_akaze": {
+      "value": 188,
+      "need": 14,
+      "pass": true
+    },
+    "2_precision_ge_0.90": {
+      "value": 1.0,
+      "pass": true
+    },
+    "3_frames_with_correct_ge_8": {
+      "value": 24,
+      "pass": true
+    },
+    "4_zero_offset_ge_12_of_24": {
+      "value": 24,
+      "pass": true
+    },
+    "5_visual_ge_0.90": {
+      "value": {
+        "panels": 46,
+        "scene_match_yes": 46,
+        "fraction": 1.0
+      },
+      "pass": true
+    }
+  },
+  "decision": "IMPROVES",
+  "akaze_baseline": {
+    "verifier": "akaze",
+    "rule": "homography_12",
+    "A_attempts": 216,
+    "A_accepted": 7,
+    "A_accepted_correct": 7,
+    "A_accepted_incorrect": 0,
+    "A_precision": 1.0,
+    "A_accepted_correct_rate": 0.0324,
+    "A_frames_with_correct": 1,
+    "A_median_err_accepted_m": 12.2,
+    "A_p90_err_accepted_m": 12.2,
+    "A_median_err_correct_m": 12.2,
+    "B_attempts": 24,
+    "B_accepted": 1,
+    "B_accepted_correct": 1,
+    "B_accepted_incorrect": 0,
+    "B_precision": 1.0,
+    "B_accepted_correct_rate": 0.0417,
+    "B_frames_with_correct": 1,
+    "B_median_err_accepted_m": 12.2,
+    "B_p90_err_accepted_m": 12.2,
+    "B_median_err_correct_m": 12.2
+  }
+}

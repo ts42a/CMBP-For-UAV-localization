@@ -7,8 +7,8 @@ purpose: >
 
 inputs:
   splits: configs/splits_v1.json
-  frozen_matcher: configs/matcher_stage3b_frozen.yaml
-  matcher_id: dinov2_c2f
+  frozen_matcher: configs/matcher_stage4_frozen.yaml
+  matcher_id: dinov2_patch_s23
   localizer_dev_regions: ['03']
 
 tolerances_m:
@@ -46,11 +46,20 @@ accept_rule:
     homography_12: used_homography == 1 and fine_inliers >= 12
     homography_20: used_homography == 1 and fine_inliers >= 20
     homography_30: used_homography == 1 and fine_inliers >= 30
+    patch_10: patch similarity fit and fine_inliers >= 10 (added by deviation D1)
+    patch_15: patch similarity fit and fine_inliers >= 15 (added by deviation D1)
+    patch_20: patch similarity fit and fine_inliers >= 20 (added by deviation D1)
+    patch_30: patch similarity fit and fine_inliers >= 30 (added by deviation D1)
   selection_data: region 03 tune_queries from configs/stage3b_splits.yaml, windowed attempts at all radii
   selection_criterion: >
     Highest precision (accepted_correct / accepted) at the primary tolerance among
     candidates with >= 5 accepted_correct attempts; ties -> more accepted_correct.
-  selected: homography_12
+  selected: patch_20
+  selection_evidence_d1: >
+    reports/verifier_comparison.md (2026-09-28). Same criterion, region 03 tune only:
+    patch_s23 + patch_20 accepted 188/216 windowed attempts, 188 correct, 0 incorrect,
+    24/24 frames; zero-offset 24/24; visual review 46/46 scene match.
+  superseded_selection: homography_12
   selection_evidence: >
     reports/accept_rule_selection.md (2026-09-27). Region 03 tune set, 216 windowed
     attempts / 24 frames. homography_12: 7 accepted, 7 correct, 0 incorrect
@@ -79,4 +88,19 @@ stage9:
   loss_of_localization: true error > 200 m for >= 10 consecutive frames
   destination_radius: defined separately before Stage 9 (not needed for maintenance metrics)
 
-deviations: []
+deviations:
+  - id: D1
+    date: '2026-09-28'
+    type: localizer re-freeze (the one change the plan allows)
+    change: >
+      Fine verifier AKAZE+homography replaced by DINOv2 ViT-S/14 patch tokens + mutual
+      nearest neighbours + RANSAC similarity, context crops 2x and 3x tile
+      (configs/matcher_stage4_frozen.yaml). Accept rule homography_12 -> patch_20.
+      Retrieval, tiling, windows, offsets, tolerances and splits unchanged.
+    reason: >
+      Stage 4 zero-offset test failed 0/5 with AKAZE; crop-width diagnosis showed AKAZE
+      verification fails at every scale (reports/stage4_checks_v1_akaze.md,
+      reports/stage4_verify_scale_diagnosis.md).
+    data_used: region 03 tune_queries only; criteria declared first in reports/verifier_switch_protocol.md (commit 2117406)
+    held_out_regions_seen: none (the 11-region smoke looked at mechanics only)
+    followed_by: Stage 3B val gate rerun on untouched val; Stage 4 checks rerun

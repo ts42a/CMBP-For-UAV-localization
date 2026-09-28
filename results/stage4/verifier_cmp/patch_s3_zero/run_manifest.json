@@ -1,0 +1,32 @@
+{
+  "started_at": "2026-09-27T03:00:03.553246+00:00",
+  "git_commit": "ecb4fc9051e8010d5924fb4dc4c0f26c29b9be0f",
+  "git_dirty_scripts_or_configs": true,
+  "config_path": "configs/candidates/verifier_patch_s3.yaml",
+  "config_sha256": "5689034dbfcb4be69198307bb8b45f32b4ede3ffc60bff5db8ec34f1e23b560a",
+  "prereg_sha256": "75acfb29d7feb8dc98bec25eb34cdae19b233335af875ea4f038d17a0266ee3b",
+  "splits_sha256": "b46407a738e649ed994c4fe6382110d065282f8ecc882ffddd4fad35875553b7",
+  "accept_rule": null,
+  "args": {
+    "set": "tune",
+    "out": "results/stage4/verifier_cmp/patch_s3_zero",
+    "resume": false,
+    "radii": "100",
+    "k": null,
+    "zero_offset": true,
+    "control_offset_m": null,
+    "n_frames": 5,
+    "regions": "all",
+    "per_region": 10,
+    "select_seed": 20260927,
+    "max_frames": null,
+    "matcher_config": "configs/candidates/verifier_patch_s3.yaml",
+    "accept_rule": "none"
+  },
+  "radii_m": [
+    100
+  ],
+  "offsets_per_radius": 1,
+  "variant": "zero",
+  "n_frames": 24
+}
