@@ -9,7 +9,7 @@ from pathlib import Path
 import gdown
 from gdown.exceptions import FileURLRetrievalError
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 RAW = ROOT / "datasets" / "raw"
 RAW.mkdir(parents=True, exist_ok=True)
 DEST = RAW / "UAV_VisLoc_dataset.zip"

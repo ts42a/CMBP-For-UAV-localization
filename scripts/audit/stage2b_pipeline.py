@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 SCRIPTS = ROOT / "scripts" / "audit"
 ARCHIVE = ROOT / "datasets" / "raw" / "UAV_VisLoc_dataset.zip"
 LOG = ROOT / "datasets" / "raw" / "stage2b_pipeline.log"

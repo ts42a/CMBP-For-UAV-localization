@@ -4,7 +4,7 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 ARCHIVE = ROOT / "datasets" / "raw" / "UAV_VisLoc_dataset.zip"
 DEST = ROOT / "datasets" / "full"
 DEST.mkdir(parents=True, exist_ok=True)

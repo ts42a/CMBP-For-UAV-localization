@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 import yaml
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 sys.path.insert(0, str(ROOT / "scripts" / "localization"))
 
 from geo_utils import geodesic_m, pixel_to_lonlat  # noqa: E402

@@ -3,8 +3,8 @@
 ## Stage 3A (baseline; preserved)
 
 ```bash
-py -3 F:\CMBL\scripts\localization\run_stage3a.py
-py -3 F:\CMBL\scripts\localization\stage3a_inspect_figures.py
+python scripts/localization/run_stage3a.py
+python scripts/localization/stage3a_inspect_figures.py
 ```
 
 Frozen: `pyramid_ncc_rot4` — **NOT READY** for labels (`reports/stage3a_pilot_summary.md`).
@@ -12,9 +12,9 @@ Frozen: `pyramid_ncc_rot4` — **NOT READY** for labels (`reports/stage3a_pilot_
 ## Stage 3B (matcher recovery)
 
 ```bash
-py -3 F:\CMBL\scripts\localization\freeze_stage3b_splits.py
-py -3 F:\CMBL\scripts\run_stage3b_recovery.py
-py -3 F:\CMBL\scripts\localization\finalize_stage3b_decision.py
+python scripts/localization/freeze_stage3b_splits.py
+python scripts/run_stage3b_recovery.py
+python scripts/localization/finalize_stage3b_decision.py
 ```
 
 Frozen: `dinov2_c2f` — **READY** for full real-outcome labeling per `reports/stage3b_decision.md`.

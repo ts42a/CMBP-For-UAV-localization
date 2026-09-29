@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 sys.path.insert(0, str(ROOT / "scripts" / "localization"))
 
 from tile_index import georef_from_metadata, load_sat_memmap  # noqa: E402

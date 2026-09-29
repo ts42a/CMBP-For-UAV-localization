@@ -1,6 +1,6 @@
 # stage10_local_mock — Stage 10 benchmark vs PC reference
 
-Run `C:/Users/tonmo/AppData/Local/Temp/claude/f--CMBL/6455bdd3-fc25-45e6-9e03-eb5d2cb17191/scratchpad/mock/CMBL/results/stage10/local_mock` (CPU; bundle `428c362`) vs `results/stage5/pilot/outcomes.csv` on the same attempt keys. Criteria frozen in `configs/stage10_benchmark.yaml`.
+Run `<temporary copy outside the repo>/CMBL/results/stage10/local_mock` (CPU; bundle `428c362`) vs `results/stage5/pilot/outcomes.csv` on the same attempt keys. Criteria frozen in `configs/stage10_benchmark.yaml`.
 
 **Agreement: PASS**
 

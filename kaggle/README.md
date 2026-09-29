@@ -49,7 +49,7 @@ The dataset README states no licence, so keep every upload **private** (personal
 | `cmbl-cache` | `cmbl-cache.zip` | Kaggle unzips it |
 | `cmbl-code` | `cmbl-code-<commit>.zip` | new version whenever the code changes |
 
-Check the dataset size limit shown in the upload dialog; if 24 GB is not allowed, stop and tell Claude.
+Check the dataset size limit shown in the upload dialog; if 24 GB is not allowed, stop: the upload has to be split (e.g. one dataset per region group) before the kernel can run.
 
 ## 3. Notebook settings
 

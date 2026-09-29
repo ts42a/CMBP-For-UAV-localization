@@ -9,7 +9,7 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 REPORTS = ROOT / "reports"
 SPLITS = ROOT / "configs" / "stage3b_splits.yaml"
 

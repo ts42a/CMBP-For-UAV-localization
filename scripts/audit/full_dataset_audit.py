@@ -19,7 +19,7 @@ import numpy as np
 import tifffile
 from PIL import Image
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 RAW = ROOT / "datasets" / "raw"
 FULL = ROOT / "datasets" / "full"
 FULL_EXTRACT = RAW / "UAV_VisLoc_dataset"

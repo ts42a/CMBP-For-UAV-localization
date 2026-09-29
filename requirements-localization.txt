@@ -1,6 +1,6 @@
 # CMBL pinned environment (Python 3.14). Versions are the ones the Stage 5 pilot, the Stages 6-8
 # pilot runs and the Stage 10 mock were produced with. Change a pin only together with
-# `py -3 scripts/protocol/verify.py` passing in the new environment, and record it in reports/progress.md.
+# `py -3 scripts/protocol/verify.py` passing in the new environment, and say so in the commit message.
 #
 #   py -3.14 -m venv .venv
 #   .venv\Scripts\python -m pip install -r requirements-localization.txt

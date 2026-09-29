@@ -4,8 +4,10 @@ from __future__ import annotations
 import urllib.request
 from pathlib import Path
 
-PART = Path(r"F:\CMBL\datasets\raw\UAV_VisLoc_dataset.zipi4suhujo.part")
-DEST = Path(r"F:\CMBL\datasets\raw\UAV_VisLoc_dataset.zip")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
+
+PART = ROOT / "datasets/raw/UAV_VisLoc_dataset.zipi4suhujo.part"
+DEST = ROOT / "datasets/raw/UAV_VisLoc_dataset.zip"
 TOTAL = 17662427174
 URLS = [
     "https://drive.google.com/uc?id=1xYODANyilEMM3CfWh85APwkTHQeLTcCT&confirm=t&uuid=37541ffe-e27a-467b-b0fa-d658ec5fec16",

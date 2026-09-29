@@ -16,7 +16,7 @@ from shapely.geometry import Point, box
 from shapely.ops import transform
 from pyproj import Transformer
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 EXTRACT = ROOT / "datasets" / "raw" / "UAV_VisLoc_dataset"
 REPORTS = ROOT / "reports"
 FIGS = ROOT / "figures"

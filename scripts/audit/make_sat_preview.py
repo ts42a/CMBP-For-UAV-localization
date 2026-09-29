@@ -5,12 +5,14 @@ Decoded tiles are typically (1, tile_h, tile_w, bands) uint8.
 """
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]  # repository root
+
 import numpy as np
 import tifffile
 from PIL import Image
 
-SAT = Path(r"F:\CMBL\datasets\sample\03\satellite03.tif")
-FIGS = Path(r"F:\CMBL\figures\sample_audit")
+SAT = ROOT / "datasets/sample/03/satellite03.tif"
+FIGS = ROOT / "figures/sample_audit"
 FIGS.mkdir(parents=True, exist_ok=True)
 
 

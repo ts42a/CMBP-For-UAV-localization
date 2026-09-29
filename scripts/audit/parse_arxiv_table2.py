@@ -4,8 +4,10 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-HTML = Path(r"F:\CMBL\sources\UAV-VisLoc_arxiv_html.html")
-OUT = Path(r"F:\CMBL\sources\UAV-VisLoc_arxiv_table2_extract.txt")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
+
+HTML = ROOT / "sources/UAV-VisLoc_arxiv_html.html"
+OUT = ROOT / "sources/UAV-VisLoc_arxiv_table2_extract.txt"
 
 html = HTML.read_text(encoding="utf-8", errors="replace")
 m = re.search(r'id="S2\.T2".*?</table>', html, re.S)

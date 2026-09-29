@@ -15,7 +15,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 SAMPLE = ROOT / "datasets" / "sample"
 RAW = ROOT / "datasets" / "raw"
 REPORTS = ROOT / "reports"

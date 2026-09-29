@@ -1,13 +1,66 @@
+# --- Data (UAV-VisLoc has no stated licence: never commit it) -------------
 datasets/raw/
 datasets/sample/
 datasets/full/
+# tile embeddings and SRTM tiles (rebuilt by scripts)
 datasets/cache/
+
+# --- Third-party material fetched for the literature review (copyright) ---
+sources/
+
+# --- AI workflow, internal plans and progress notes (kept locally) -------
+A_help/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+GEMINI.md
+.claude/
+.cursor/
+.cursorrules
+.windsurf/
+.windsurfrules
+.aider*
+.continue/
+.codex/
+.github/copilot-instructions.md
+*.prompt.md
+prompts/
+
+# --- Secrets and credentials ---------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+kaggle.json
+access_token
+.kaggle/
+
+# --- Personal account data and machine-specific outputs ------------------
+reports/stage10_kaggle_quota.json
+reports/stage10_kaggle_transfer.json
+
+# --- Logs, caches, build outputs ------------------------------------------
+*.log
+results/logs/
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+build/
 *.zip
 *.part
-results/logs/
-build/
-.venv/
+*.tmp
+
+# --- Full-scale outputs: archived with scripts/protocol/archive_outputs.py -
 results/full/
 figures/full/
+
+# --- Environments and editors ---------------------------------------------
+.venv/
+venv/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

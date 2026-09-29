@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 SAMPLE = ROOT / "datasets" / "sample"
 REPORTS = ROOT / "reports"
 FIGS = ROOT / "figures" / "sample_audit"

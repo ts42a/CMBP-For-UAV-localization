@@ -15,7 +15,7 @@ import tifffile
 from PIL import Image
 from pyproj import Geod
 
-ROOT = Path(r"F:\CMBL")
+ROOT = Path(__file__).resolve().parents[2]  # repository root
 EXTRACT = ROOT / "datasets" / "raw" / "UAV_VisLoc_dataset" / "03"
 SAT = EXTRACT / "satellite03.tif"
 CSV_PATH = EXTRACT / "03.csv"
