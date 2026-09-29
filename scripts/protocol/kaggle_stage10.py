@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -162,8 +161,9 @@ def cmd_stage(args) -> None:
 
 
 def dataset_exists(user: str, slug: str) -> bool:
-    out = kaggle("datasets", "status", f"{user}/{slug}", capture=True, check=False)
-    return not re.search(r"404|not found|Permission", out, re.I)
+    # "datasets status" answers 403 (not 404) for a missing dataset, so check our own list instead.
+    out = kaggle("datasets", "list", "--mine", "-s", slug, "--csv", "--page-size", "100", capture=True)
+    return f"{user}/{slug}".lower() in {line.split(",")[0].strip().lower() for line in out.splitlines()}
 
 
 def load_transfer() -> list:
@@ -207,7 +207,8 @@ def wait_dataset(user: str, slug: str, timeout_min: float) -> str:
     while True:
         out = kaggle("datasets", "status", f"{user}/{slug}", capture=True, check=False).strip()
         low = out.lower()
-        if "ready" in low or "error" in low or "fail" in low or time.time() > t_end:
+        transient = "client error" in low or "forbidden" in low  # 403 until the new dataset is visible
+        if "ready" in low or (not transient and ("error" in low or "fail" in low)) or time.time() > t_end:
             return out
         time.sleep(30)
 
@@ -229,7 +230,8 @@ def cmd_wait(args) -> str:
         out = kaggle("kernels", "status", kid, capture=True, check=False).strip()
         print(out, flush=True)
         low = out.lower()
-        if any(s in low for s in ("complete", "error", "cancel")):
+        # 'has status "KernelWorkerStatus.RUNNING"'; anything without "has status" is a transient API error
+        if "has status" in low and any(s in low for s in ("complete", "error", "cancel")):
             return out
         if time.time() > t_end:
             raise SystemExit("timed out waiting; the kernel keeps running on Kaggle, rerun: wait")
