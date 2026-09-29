@@ -1,0 +1,103 @@
+schema_version: stage9_protocol_v1
+status: proposed_pending_approval   # becomes frozen_before_replay once approved; decisions marked DECIDE need the author
+date: '2026-09-29'
+purpose: >
+  RQ3 / H4: does probability-aware scheduling of localization attempts maintain localization
+  better along recorded routes at a matched number of actual attempts? Recorded-route replay only
+  (localization maintenance, not A-to-B arrival). Everything here is fixed before any replay run.
+explanation: reports/stage9_protocol_draft.md
+
+routes:
+  source: each region's recorded flight, frames in `num` order, CSV positions as truth
+  regions: all except 07 (D2); region 03 (localizer dev) reported separately as well as included
+  opportunities: every frame is a candidate attempt point
+  predictor_per_route: the leave-one-group-out model whose held-out group contains the route's region (never trained on it)
+
+motion_and_drift:  # odometry = truth displacement corrupted; ground truth never enters the estimate
+  model: >
+    d_odo_t = (1 + s) * Rot(b + h_t) * d_true_t + e_t;  e_t = phi * e_{t-1} + w_t
+    s ~ N(0, sd_s) per route (scale bias), b ~ N(0, sd_b) per route (heading bias),
+    h_t ~ N(0, sd_h) per frame (heading noise), w_t ~ N(0, sd_w^2 I) (correlated position noise)
+  phi: 0.95
+  levels:  # nominal drift = expected position error growth as a fraction of distance travelled since the last fix
+    L0: {rate: 0.0}          # sanity: all policies must look alike
+    L1: {rate: 0.02}
+    L2: {rate: 0.05}
+    L3: {rate: 0.10}         # reaches the localizer's effective reach within one typical gap between fixes
+  parameterisation: >
+    For each level, sd_s = sd_b(rad) = rate / 2 and sd_w is set so that the AR(1) term contributes
+    rate / 2 of the error growth over 1 km; sd_h = 0.5 deg at every level except L0. Calibrated once by
+    simulation on synthetic straight routes (no dataset route) before any replay; values written to
+    results/stage9/drift_calibration.json and frozen.
+  seeds: 5 per route and level; identical across policies (paired design)
+
+estimator:
+  update: x_hat_t = x_hat_{t-1} + d_odo_t
+  uncertainty: sigma_t = sigma_fix + rate_nominal * distance since the last accepted fix; sigma_fix = 30 m (accepted-fix error p75 ~ 41 m, pilot)
+  attempt_radius: smallest of the pre-registered radii {100, 300, 1000} with R >= 2 * sigma_t, capped at 1000 (the pre-registration's sigma = R / 2)
+  fix_gating: >
+    an accepted fix updates the estimate only if |fix - x_hat_t| <= gate = max(3 * sigma_t, R + 300 m)
+    (a correct fix can lie up to about R + 250 m from the prior centre; reports/stage9_reach_r03.md);
+    otherwise it is logged as gated (not used). On use: x_hat_t = fix, sigma_t = sigma_fix.
+  truth_access: never; the policy and estimator receive only x_hat, sigma, predictor outputs and accepted/rejected + fix position
+
+outcome_source:  # DECIDE (cost lever): what the localizer returns for an attempt at (frame, x_hat, R)
+  recommended: C_hybrid
+  options:
+    A_live: run the frozen localizer for every replay attempt (projected ~622 CPU-h under the placeholder design; reports/stage10_cost_sheet_pc_cpu.md)
+    B_lookup: take the full-scale label row of the same frame and radius whose offset vector is nearest to x_hat - truth
+    C_hybrid: B when |x_hat - truth| is within the largest labelled offset for that frame and radius, A otherwise (live results cached by frame, radius and 25 m-rounded centre)
+  fidelity_check: >
+    Before any policy comparison: 2,000 replay attempts drawn at random across routes, levels and budgets
+    are run live and compared with the lookup; C (or B) is used only if outcome_primary agrees on >= 90%
+    and accepted positions agree within 25 m on >= 90% of both-accepted attempts; otherwise A.
+    Basis: within-frame (radius/offset) variation is only 24% of pilot label variance and 64% of frames
+    give the same outcome on all 9 attempts (project evaluation 2026-09-29), so a nearby labelled offset
+    is expected to predict the outcome; the check decides, not the expectation.
+
+effective_reach:  # how far from the prior centre the truth can be and still give a correct fix
+  measured_dev_region_r100: {offset_0m: 1.00, offset_250m: 0.17, offset_500m_and_more: 0.00}   # 24 frames each
+  summary: about R + 250 m; the verifier needs the ~500 m query footprint inside a 600-900 m crop centred on a window tile
+  measured_dev_region: results/stage9_prep/reach_r03 (region 03 tune queries, R = 100 m, prior displaced 0-2000 m; dev region only)
+  use: reporting and gating only; drift levels are stated as rates, and results are also shown against sigma / reach
+
+policies:  # all attempt the same fraction B of frames unless stated
+  P0_equal: attempt every round(1 / B)-th frame
+  P1_random: B-fraction of frames, uniformly at random (seeded)
+  P2_texture: attempt when M1 raw p >= threshold
+  P3_uncalibrated: attempt when M2 raw p >= threshold
+  P4_calibrated: attempt when M2 fe_platt p >= threshold
+  P5_untuned_product: >
+    attempt at frame t when 1 - prod_{i skipped since last fix} (1 - p_i) >= tau with calibrated M2 p;
+    tau = 0.9 fixed (not tuned); its realised attempt rate is reported and it is compared with the other
+    policies at that rate
+  P6_oracle: attempt exactly where the outcome would be accepted_correct (sanity only, never reported as a method)
+  thresholds: >
+    For P2-P4, the threshold that gives attempt fraction B on the source regions' routes (same fold as the
+    predictor); the realised fraction on the test route is reported (does a source-tuned threshold hit its
+    intended rate under shift?)
+  predictor_inputs: map features at x_hat_t with radius R (scripts/predictor/map_features.py functions); no UAV image
+
+budgets: [0.05, 0.10, 0.20, 0.40]
+
+metrics:
+  primary: fraction of route frames with true position error <= 100 m (primary tolerance)
+  secondary: [max error, terminal error, loss-of-localization episodes (pre-registration: error > 200 m for >= 10 consecutive frames), accepted-correct fixes, accepted-incorrect fixes, gated fixes, attempts used]
+  matched_attempts: every comparison is at matched actual attempts (policies are paired by route, level and seed)
+
+h4_test:
+  primary_comparison: P4_calibrated vs P0_equal at B = 0.10, level L2, primary metric; paired difference over routes x seeds
+  uncertainty: block bootstrap over route segments of 50 frames within each route, then over routes; 2,000 reps; 95% percentile CI
+  supported_if: the CI of (P4 - P0) excludes 0 in P4's favour; P4 vs P2 and P4 vs P3 reported with the same method (P4 vs P3 isolates calibration)
+  all_other_cells: reported, not tested
+
+correlated_failures:
+  independence_check: observed run lengths of consecutive failed attempts vs the geometric distribution implied by the mean predicted p; reported per route
+  stress_test: contiguous failure blocks of 5, 10 and 20 frames injected at random positions (seeded) into the outcome source; all policies rerun
+  note: the product rule is an independence heuristic; its violation rate is reported, it is never a route-level guarantee
+
+checks:
+  - L0 (no drift): all policies within noise of each other on the primary metric
+  - P6 oracle clearly best at every budget and level > L0
+  - no truth variable reachable from the policy/estimator code (enforced by the interface and grep-checked)
+  - identical seeds give identical results; a killed replay resumes without duplicates

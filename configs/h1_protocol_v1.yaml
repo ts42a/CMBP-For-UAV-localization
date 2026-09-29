@@ -1,0 +1,48 @@
+schema_version: h1_protocol_v1
+status: proposed_pending_approval   # becomes frozen_before_h1_labels once approved
+date: '2026-09-29'
+purpose: >
+  H1: training on real localization outcomes transfers better to real test imagery than training
+  on synthetic outcomes, with predictor, localizer and sample budget held equal. This fixes how the
+  synthetic outcomes are generated, before any synthetic label exists.
+
+design:
+  locations: the same frames, radii and pre-registered offsets as the real labels (same seeds), so the only difference is the query image
+  label_source_synthetic: the frozen localizer (configs/matcher_stage4_frozen.yaml, accept rule patch_20) run on a synthetic query cut from the satellite map at the frame's CSV position
+  variant_name: syn_prior   # rows are keyed like real rows; variant tells them apart; no new columns
+  comparison: >
+    Same predictor protocol (M1-M3, fixed hyperparameters), same leave-one-group-out folds and
+    sample counts. Train on synthetic labels of source regions vs on real labels of source regions;
+    evaluate both on REAL labels of the held-out region (headline set of the predictor protocol in force).
+  leakage: synthetic rows of a held-out region never enter training for that fold
+
+generator:  # scripts/h1/synthetic_query.py
+  seed: 20260929
+  seeding: sha256(seed|region|filename|h1) -> numpy default_rng; order independent
+  footprint:
+    rule: long edge on the ground = k x height above ground (datasets/manifests/frame_agl.csv)
+    k_by_camera:
+      '3976x2652': 1.076   # median fitted query footprint / AGL on dev region 03, accepted-correct pilot rows (n=85, IQR 1.050-1.100)
+      '3000x2000': 1.076   # ASSUMED equal (no intrinsics; regions 05, 07, 10); covered by the scale jitter and reported as a limitation
+    aspect: image aspect of the region's camera (3:2 for both)
+    scale_jitter_log_sd: 0.10
+  geometry:
+    rotation_deg: [0, 360]   # uniform; the localizer uses an 8-angle rotation bank; heading is not an input
+    tilt_deg: [0, 8]   # uniform, in a uniform random direction (keystone approximation)
+  appearance:  # all uniform [lo, hi]; real-vs-map differences the localizer meets on real frames (season, sensor, compression)
+    brightness_shift: [-0.15, 0.15]
+    contrast: [0.8, 1.2]
+    gamma: [0.8, 1.25]
+    saturation: [0.7, 1.2]
+    hue_shift_deg: [-6, 6]
+    gaussian_blur_sigma_px: [0, 1.5]
+    gaussian_noise_sd: [0, 4]   # 8-bit DN
+    jpeg_quality: [70, 95]
+  output_px: [1500, 1000]
+  outside_map: black; coverage recorded; the attempt is kept like any real attempt
+
+known_limitations:
+  - the synthetic query comes from the same satellite image the localizer matches against (same date and sensor), so it is easier than a real frame even after the appearance changes; this is the gap H1 measures, not a flaw to tune away
+  - no 3D relief, shadows from a different sun angle, moving objects or seasonal vegetation change
+  - k for the 3000x2000 camera is assumed
+  - parameters were set from the plan and physical reasoning, not tuned on any outcome; they are frozen before the first synthetic label

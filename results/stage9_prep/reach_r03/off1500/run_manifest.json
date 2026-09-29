@@ -1,0 +1,34 @@
+{
+  "started_at": "2026-09-29T03:10:35.519060+00:00",
+  "git_commit": "47686845588714ce1ec4fdb20abe9c273fe51f72",
+  "git_dirty_scripts_or_configs": true,
+  "config_path": "configs/matcher_stage4_frozen.yaml",
+  "config_sha256": "abfc07a4d6d3269ff40d20261ebfbfb0523b380943fd34ed71e3f43415a27f97",
+  "prereg_sha256": "90679f74810443717480cf9f82f706285358a66f037d9441b96163d05bdcfa94",
+  "splits_sha256": "b46407a738e649ed994c4fe6382110d065282f8ecc882ffddd4fad35875553b7",
+  "accept_rule": "patch_20",
+  "query_source": "real",
+  "args": {
+    "set": "tune",
+    "out": "results/stage9_prep/reach_r03/off1500",
+    "resume": true,
+    "radii": "100",
+    "k": null,
+    "zero_offset": false,
+    "control_offset_m": 1500.0,
+    "n_frames": 5,
+    "regions": "all",
+    "per_region": 10,
+    "select_seed": 20260927,
+    "max_frames": null,
+    "matcher_config": null,
+    "accept_rule": null,
+    "query_source": "real"
+  },
+  "radii_m": [
+    100
+  ],
+  "offsets_per_radius": 1,
+  "variant": "control1500",
+  "n_frames": 24
+}

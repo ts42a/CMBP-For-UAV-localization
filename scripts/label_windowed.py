@@ -157,6 +157,8 @@ def main() -> int:
     ap.add_argument("--max-frames", type=int, default=None)
     ap.add_argument("--matcher-config", default=None, help="default = preregistration inputs.frozen_matcher")
     ap.add_argument("--accept-rule", default=None, help="override the pre-registered rule; 'none' leaves outcomes blank")
+    ap.add_argument("--query-source", choices=["real", "synthetic"], default="real",
+                    help="synthetic: H1 query cut from the satellite map (configs/h1_protocol_v1.yaml); variant gets a syn_ prefix")
     args = ap.parse_args()
 
     prereg = yaml.safe_load(PREREG.read_text(encoding="utf-8"))
@@ -168,6 +170,12 @@ def main() -> int:
     tol = float(prereg["tolerances_m"]["primary"])
     rule = prereg["accept_rule"]["selected"] if args.accept_rule is None else (None if args.accept_rule == "none" else args.accept_rule)
     variant = "zero" if args.zero_offset else (f"control{int(args.control_offset_m)}" if args.control_offset_m is not None else "prior")
+    synth = None
+    if args.query_source == "synthetic":
+        sys.path.insert(0, str(ROOT / "scripts" / "h1"))
+        from synthetic_query import H1_PROTOCOL, synth_query as synth  # noqa: E402
+        from PIL import Image  # noqa: E402
+        variant = "syn_" + variant
     g7 = region_to_group7()
 
     out_dir = ROOT / args.out
@@ -191,6 +199,8 @@ def main() -> int:
         "prereg_sha256": prereg_sha,
         "splits_sha256": sha256(SPLITS),
         "accept_rule": rule,
+        "query_source": args.query_source,
+        **({"h1_protocol_sha256": sha256(H1_PROTOCOL)} if synth is not None else {}),
         "args": vars(args),
         "radii_m": radii,
         "offsets_per_radius": k_per,
@@ -232,7 +242,12 @@ def main() -> int:
         if path is None or not path.is_file():
             path = DATASET_ROOT / region / "drone" / q["filename"]
         t0, c0 = time.perf_counter(), time.process_time()
-        bgr = cv2.imread(str(path))
+        if synth is not None:
+            with Image.open(path) as im:
+                size = im.size
+            bgr, _ = synth(rasters, region, q["filename"], float(q["lat"]), float(q["lon"]), size)
+        else:
+            bgr = cv2.imread(str(path))
         if bgr is None:
             raise RuntimeError(f"cannot read {path}")
         ctx = QueryContext(bgr, embedder, frozen, verifier)
