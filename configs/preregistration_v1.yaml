@@ -179,3 +179,27 @@ deviations:
     safeguards: >
       Decided before any full-scale label exists. Code verified to reproduce the v3 pilot run
       byte-for-byte with the rule absent, and tested on the pilot with a partial exclusion list.
+  - id: D6
+    date: '2026-09-29'
+    status: proposed_pending_approval   # not in force until the author approves; then configs/predictor_protocol_v5.yaml status -> frozen_before_full_labels
+    type: diagnostics and sensitivity analyses added to the predictor protocol, before full-scale labels (Stages 6-8)
+    change: >
+      configs/predictor_protocol_v5.yaml supersedes v4. Adds (a) diagnostic models M4_flight_diag
+      (log height above ground + search geometry, no map) and M5_dino_flight_diag (M2 + log height
+      above ground), reported apart from H2/H3; (b) a frame-quality sensitivity excluding label-free
+      flagged frames (datasets/manifests/frame_quality.csv); (c) a label-noise bound rerunning the
+      evaluator with every accepted fix counted as a success. Registered models, features,
+      calibration, controls, splits, labels, headline (v4) and H2/H3 unchanged.
+    reason: >
+      Project evaluation (2026-09-29): 40% of pilot label variance lies between regions; exploratory,
+      post hoc, region success rises with height above ground (Spearman 0.83, 10 regions;
+      reports/agl_vs_success_exploratory.md, two functional forms tried, both reported). Ground-truth
+      error in parts of some tracks (region 06) becomes label noise that label-free checks cannot
+      find (reports/frame_quality_audit.md: 6 of 6,774 frames flagged, all take-off/landing).
+    data_used: Stage 5 pilot outcomes (exploratory AGL analysis); manifest and SRTM terrain (label-free audits)
+    held_out_regions_seen: Stage 5 pilot outcomes, all regions (as for D3-D5)
+    safeguards: >
+      Diagnostics and sensitivities only; no registered estimate changes. Verified: registered-model
+      predictions under v5 equal v3 exactly (scripts/protocol/verify.py predictor_v5); v3 and v4
+      checks still pass. The pilot function check of M4/M5 uses the data that motivated them and
+      is not evidence.

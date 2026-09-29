@@ -1,0 +1,104 @@
+schema_version: predictor_protocol_v5
+status: proposed_pending_approval   # becomes frozen_before_full_labels once approved
+date: '2026-09-29'
+supersedes: configs/predictor_protocol_v4.yaml
+purpose: >
+  Adds diagnostics and sensitivity analyses only. Registered models (M0-M3), features,
+  calibration, controls, splits, labels, the headline (v4: pilot frames excluded) and H2/H3 are
+  unchanged. Logged as deviation D6 in configs/preregistration_v1.yaml once approved.
+reason: >
+  Project evaluation 2026-09-29. (1) 40% of pilot label variance lies between regions, which a
+  map-only predictor cannot see; exploratory, post hoc: region success rises with height above
+  ground (Spearman 0.83, 10 regions; reports/agl_vs_success_exploratory.md). A flight-context
+  diagnostic tests whether that explains the between-region base rate and the calibration gap.
+  (2) Ground-truth error in parts of some tracks (region 06) turns into label noise that no
+  label-free check detects (reports/frame_quality_audit.md), so its influence is bounded instead.
+
+changes:
+  - diagnostic_models: M4_flight_diag (log height above ground + log radius + window tile count, no map) and M5_dino_flight_diag (M2 + log height above ground); cross-fitted and calibrated exactly like M1-M3; reported apart from H2/H3
+  - evaluation: frame-quality sensitivity (headline rows minus label-free flagged frames)
+  - label_noise_bound: rerun with accepted_incorrect counted as success (upper bound on ground-truth noise), reported beside the registered label
+
+inputs:
+  outcomes: results/stage5/pilot/outcomes.csv
+  prereg: configs/preregistration_v1.yaml
+  splits: configs/splits_v1.json
+  scheme: primary_7group
+  excluded_regions: ['07']  # deviation D2
+  localizer_dev_regions: ['03']
+  features_protocol: configs/predictor_protocol_v1.yaml
+  features_protocol_sha256: 90efed076da2a50e8d8dfe30354315c3c4cf87c3705bcb8b32338c38e496baec
+
+label: unchanged from v1 (accepted_correct at 100 m; one row per windowed attempt)
+predictor_inputs: unchanged from v1 (prior centre, radius, satellite map only)
+features: unchanged from v1 (tiling, texture_features, dino_features, distinctiveness); feature files built under v1 are reused
+models: unchanged from v1 (M0_constant, M1_texture, M2_dino, M3_dino_distinct; fixed hyperparameters, no tuning)
+cross_fitting: unchanged from v1 (outer leave-one-group-out; inner_folds give OOF predictions)
+
+calibration:  # unchanged from v2 and v3
+  primary: fe_platt
+  fe_platt:
+    slope: >
+      LogisticRegression(C=10, fit_intercept=False, max_iter=5000) on [logit(OOF p), one-hot source group],
+      fitted on source rows of groups that contain both outcome classes; slope clipped at >= 0.
+    intercept: With the slope fixed, one intercept fitted by maximum likelihood on all source OOF rows, bounded search in [-20, 20].
+    apply: p_cal = sigmoid(slope * logit(raw test p) + intercept). No test-region labels or map statistics are used.
+  registered_comparison: v1 calibration (Platt vs isotonic chosen on pooled OOF), reported as cal_v1_registered
+  apply_to: [M1_texture, M2_dino, M3_dino_distinct]
+  logit_clip: [1.0e-6, 0.999999]
+
+metrics:  # unchanged from v2
+  discrimination: [auroc, pr_auc]  # undefined (null) when a held-out group has one class
+  probability: [brier, log_loss, ece]
+  ece_bins: 10 equal-width  # preregistration_v1 stage8
+  prob_clip: [1.0e-6, 0.999999]
+  headline: macro over held-out groups (AUROC and PR-AUC over groups where defined), plus per group
+  pooled: Brier, log loss and ECE pooled over all test rows are reported; pooled AUROC and PR-AUC are secondary and flagged unreliable under leave-one-group-out
+  separate: fold G2 (contains localizer-dev region 03) reported separately as well as included
+  bootstrap: resample region groups with replacement, 1000 reps, seed 20260928, percentile 95% CI
+  h3_comparison: macro Brier and log loss, calibrated (fe_platt) vs raw, same predictor
+
+controls:
+  shuffle_labels: >
+    confound_diagnostic — permute labels within each training group and refit M1, 20 permutations
+    (seed 20260928); reported, no pass/fail (it keeps group success rates, so between-region
+    confounds can move it away from 0.5)
+  shuffle_permutations: 20
+  leakage_control: >
+    global — permute all source labels together (destroying within- and between-group structure)
+    and refit M1, 20 permutations, run after the confound diagnostic from the same seeded stream
+  leakage_permutations: 20
+  leakage_pass: mean over permutations of the macro AUROC within 0.50 +/- 0.05
+
+checks:
+  - no test-group row in any scaler, PCA, model or calibrator fit set (asserted)
+  - fe_platt is monotone non-decreasing, so its AUROC equals the raw AUROC in every two-class fold (asserted)
+  - leakage_control passes
+  - one protocol sha256 in every output
+
+evaluation:  # v4 (deviation D5); v5 adds sensitivity_exclude_flagged_frames
+  headline_exclude_frames: results/stage5/pilot/outcomes.csv   # key (region, filename); 110 frames
+  applies_to: >
+    test rows only: per-group and macro metrics, pooled metrics and bootstrap CIs, H3 comparison,
+    leakage control and confound diagnostic AUROCs, reliability diagrams. Training, inner
+    cross-fitting and calibrator fitting use every source row, pilot frames included.
+  sensitivity: the same metrics over all test rows, reported separately (metrics_per_fold_all_frames.csv)
+  sensitivity_exclude_flagged_frames: datasets/manifests/frame_quality.csv   # v5; label-free flags (scripts/audit/frame_quality.py)
+  h3_reporting: calibrated (fe_platt) macro Brier and log loss are also shown against M0_constant; reporting only, H3 as registered is unchanged
+
+diagnostic_models:  # new in v5 (deviation D6); never part of H2/H3
+  models: [M4_flight_diag, M5_dino_flight_diag]
+  flight_context: datasets/manifests/frame_agl.csv   # AGL = CSV height - SRTM 1-arc-second terrain; scripts/audit/agl_height.py; label-free
+  feature: log(max(agl_m, 10))
+  M4_flight_diag: log AGL + log_radius + n_window_tiles (no map features), StandardScaler + LogisticRegression(C=1.0)
+  M5_dino_flight_diag: the M2 feature set + log AGL, same fitting as M2
+  question: >
+    Does flight context known before the flight explain the between-region base rate that map
+    features cannot, and does fe_platt calibration then transfer? Reported as a diagnostic for RQ2;
+    no hypothesis is tested on it.
+  caveat: CSV height datum undocumented (tens of metres per region); SRTM ~5-10 m; AGL is not a footprint (no intrinsics)
+
+label_noise_bound:  # new in v5 (deviation D6); scripts/predictor/label_noise_bound.py
+  registered_label: accepted_correct at 100 m (unchanged; the headline)
+  upper_bound_label: accepted (accepted_correct or accepted_incorrect) — as if every wrong fix were a ground-truth error
+  report: headline macro metrics for both labels side by side; conclusions that flip between them are reported as sensitive to ground-truth noise

@@ -9,6 +9,9 @@ applied to the untouched test group.
   v1 (registered pilot run): pooled Platt vs isotonic, chosen on source OOF.
   v2 (primary from 2026-09-28, deviation D3): fixed-effects Platt, whose slope comes from
       within-group variation only; v1 calibration still reported as cal_v1_registered.
+  v5 (proposed, deviation D6): adds diagnostic models M4_flight_diag (height above ground + search
+      geometry, no map) and M5_dino_flight_diag (M2 + height above ground), and a label-free
+      frame-quality sensitivity set; registered models, headline and H3 are unchanged from v4.
   v4 (deviation D5): headline test metrics exclude the frames listed in
       evaluation.headline_exclude_frames (the Stage 5 pilot frames, whose outcomes shaped v2/v3);
       training is unchanged and all-frames metrics are reported as a sensitivity analysis.
@@ -45,6 +48,7 @@ EXTRA_COLS = ["log_radius", "n_window_tiles"]
 DISTINCT_COLS = ["distinct_max", "distinct_top5", "no_competitor"]
 MODELS = ("M0_constant", "M1_texture", "M2_dino", "M3_dino_distinct")
 CALIBRATED = ("M1_texture", "M2_dino", "M3_dino_distinct")
+DIAG_MODELS = ("M4_flight_diag", "M5_dino_flight_diag")  # v5 diagnostics, never part of H2/H3
 METRIC_KEYS = ("auroc", "pr_auc", "brier", "log_loss", "ece")
 
 
@@ -60,7 +64,7 @@ def git(*args: str) -> str:
 
 
 class Data:
-    def __init__(self, feat_dir: Path):
+    def __init__(self, feat_dir: Path, agl_csv: Path | None = None):
         self.df = pd.read_csv(feat_dir / "features.csv", dtype={"region": str, "group_7": str})
         emb = np.load(feat_dir / "embeddings.npz")
         self.near, self.win = emb["near"].astype(np.float64), emb["window"].astype(np.float64)
@@ -69,6 +73,13 @@ class Data:
         self.tex = self.df[TEX_COLS].to_numpy(float)
         self.extra = self.df[EXTRA_COLS].to_numpy(float)
         self.distinct = self.df[DISTINCT_COLS].to_numpy(float)
+        self.flight = None
+        if agl_csv is not None:  # v5: per-frame height above ground (label-free audit)
+            agl = pd.read_csv(agl_csv, dtype={"region": str})[["region", "filename", "agl_m"]]
+            j = self.df[["region", "filename"]].merge(agl, on=["region", "filename"], how="left", validate="many_to_one")
+            if j["agl_m"].isna().any():
+                raise SystemExit(f"{int(j['agl_m'].isna().sum())} rows have no height above ground in {agl_csv}")
+            self.flight = np.log(np.clip(j["agl_m"].to_numpy(float), 10.0, None)).reshape(-1, 1)
 
 
 def fit_predict(kind: str, d: Data, tr: np.ndarray, te: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
@@ -79,6 +90,8 @@ def fit_predict(kind: str, d: Data, tr: np.ndarray, te: np.ndarray, y: np.ndarra
         return np.full(len(te), ytr.mean())
     if kind == "M1_texture":
         xtr, xte = d.tex[tr], d.tex[te]
+    elif kind == "M4_flight_diag":
+        xtr, xte = np.hstack([d.flight[tr], d.extra[tr]]), np.hstack([d.flight[te], d.extra[te]])
     else:
         parts_tr, parts_te = [], []
         for vec in (d.near, d.win):
@@ -91,6 +104,9 @@ def fit_predict(kind: str, d: Data, tr: np.ndarray, te: np.ndarray, y: np.ndarra
         if kind == "M3_dino_distinct":
             parts_tr.append(d.distinct[tr])
             parts_te.append(d.distinct[te])
+        if kind == "M5_dino_flight_diag":
+            parts_tr.append(d.flight[tr])
+            parts_te.append(d.flight[te])
         xtr, xte = np.hstack(parts_tr), np.hstack(parts_te)
     sc = StandardScaler().fit(xtr)
     lr = LogisticRegression(C=1.0, max_iter=2000).fit(sc.transform(xtr), ytr)
@@ -171,7 +187,7 @@ def main() -> int:
     proto = yaml.safe_load(proto_path.read_text(encoding="utf-8"))
     proto_sha = sha256(proto_path)
     # v2 and later share fixed-effects calibration; v3 adds the global-permutation leakage control.
-    v2 = proto["schema_version"] in ("predictor_protocol_v2", "predictor_protocol_v3", "predictor_protocol_v4")
+    v2 = proto["schema_version"] in ("predictor_protocol_v2", "predictor_protocol_v3", "predictor_protocol_v4", "predictor_protocol_v5")
     # Calibrated variants: name -> prediction column.
     cal_cols = {"cal_v1_registered": "p_cal_v1", "cal_v2_fe": "p_cal_fe"} if v2 else {"calibrated": "p_cal"}
     v1_name = "cal_v1_registered" if v2 else "calibrated"
@@ -184,7 +200,12 @@ def main() -> int:
         raise SystemExit("features were built under a different predictor protocol")
     splits = json.loads((ROOT / proto["inputs"]["splits"]).read_text(encoding="utf-8"))
     scheme = splits["schemes"][proto["inputs"]["scheme"]]
-    d = Data(feat_dir)
+    diag = tuple(proto.get("diagnostic_models", {}).get("models", []))
+    if set(diag) - set(DIAG_MODELS):
+        raise SystemExit(f"unknown diagnostic models {set(diag) - set(DIAG_MODELS)}")
+    agl_csv = proto.get("diagnostic_models", {}).get("flight_context")
+    d = Data(feat_dir, ROOT / agl_csv if diag else None)
+    models, calibrated = MODELS + diag, CALIBRATED + diag
     seed = int(proto["metrics"]["bootstrap"].split("seed ")[1].split(",")[0])
     rng = np.random.default_rng(seed)
 
@@ -197,6 +218,13 @@ def main() -> int:
         keys = set(zip(ex["region"], ex["filename"]))
         in_head = np.array([(r, f) not in keys for r, f in zip(d.df["region"].astype(str), d.df["filename"].astype(str))])
     fold_rows_all: list[dict] = []
+    # v5: label-free frame-quality flags; the sensitivity set is the headline rows minus flagged frames.
+    qual = proto.get("evaluation", {}).get("sensitivity_exclude_flagged_frames")
+    in_qual, fold_rows_qual = in_head.copy(), []
+    if qual:
+        fq = pd.read_csv(ROOT / qual, dtype={"region": str})
+        bad = set(zip(fq.loc[fq["flagged"] == 1, "region"], fq.loc[fq["flagged"] == 1, "filename"]))
+        in_qual &= np.array([(r, f) not in bad for r, f in zip(d.df["region"].astype(str), d.df["filename"].astype(str))])
 
     pred_rows, fold_rows, shuffle_auc, shuffle_perm, cal_choice = [], [], {}, {}, {}
     leak_perm: dict[str, list[float]] = {}
@@ -210,21 +238,21 @@ def main() -> int:
             raise SystemExit(f"fold {test_g}: no headline test rows left after {excl}")
         y_te = d.y[te][hm]
 
-        oof = {m: np.full(len(d.y), np.nan) for m in MODELS}
+        oof = {m: np.full(len(d.y), np.nan) for m in models}
         for inner in fold["inner_folds"]:
             assert test_g not in inner["train_groups"] and inner["val_group"] != test_g
             itr = np.flatnonzero(np.isin(d.group, inner["train_groups"]))
             iva = np.flatnonzero(d.group == inner["val_group"])
             assert not set(itr) & set(te) and not set(iva) & set(te)
-            for m in MODELS:
+            for m in models:
                 oof[m][iva] = fit_predict(m, d, itr, iva)
-        for m in MODELS:
+        for m in models:
             assert not np.isnan(oof[m][src]).any() and np.isnan(oof[m][te]).all()
 
-        raw = {m: fit_predict(m, d, src, te) for m in MODELS}
+        raw = {m: fit_predict(m, d, src, te) for m in models}
         cal = {v: {} for v in cal_cols}
         chosen, fe = {}, {}
-        for m in CALIBRATED:
+        for m in calibrated:
             losses = {}
             for kind in ("platt", "isotonic"):
                 per_g = []
@@ -277,8 +305,8 @@ def main() -> int:
                 return f"fe_platt slope={fe[m][0]:.3f}"
             return chosen.get(m, "")
 
-        for m in MODELS:
-            variants = {"raw": raw[m]} | ({v: cal[v][m] for v in cal_cols} if m in CALIBRATED else {})
+        for m in models:
+            variants = {"raw": raw[m]} | ({v: cal[v][m] for v in cal_cols} if m in calibrated else {})
             for v, p in variants.items():
                 info = {"fold": test_g, "regions": ",".join(sorted(set(d.df["region"].iloc[te]))),
                         "localizer_dev_contaminated": bool(fold.get("localizer_dev_contaminated", False)),
@@ -286,17 +314,20 @@ def main() -> int:
                 fold_rows.append({**info, **metrics(y_te, p[hm])})
                 if excl:
                     fold_rows_all.append({**info, **metrics(d.y[te], p)})
+                qm = in_qual[te]
+                if qual and qm.any():
+                    fold_rows_qual.append({**info, **metrics(d.y[te][qm], p[qm])})
         for j, i in enumerate(te):
             base = {k: d.df[k].iloc[i] for k in ("region", "group_7", "filename", "radius_m", "offset_k")}
-            for m in MODELS:
+            for m in models:
                 row = {**base, "fold": test_g, "model": m, "label": int(d.y[i]), "p_raw": float(raw[m][j])}
                 if v2:
-                    row.update({"p_cal_v1": float(cal[v1_name][m][j]) if m in CALIBRATED else "",
+                    row.update({"p_cal_v1": float(cal[v1_name][m][j]) if m in calibrated else "",
                                 "calibrator_v1": chosen.get(m, ""),
-                                "p_cal_fe": float(cal["cal_v2_fe"][m][j]) if m in CALIBRATED else "",
+                                "p_cal_fe": float(cal["cal_v2_fe"][m][j]) if m in calibrated else "",
                                 "fe_slope": fe[m][0] if m in fe else "", "fe_intercept": fe[m][1] if m in fe else ""})
                 else:
-                    row.update({"p_cal": float(cal[v1_name][m][j]) if m in CALIBRATED else "",
+                    row.update({"p_cal": float(cal[v1_name][m][j]) if m in calibrated else "",
                                 "calibrator": chosen.get(m, "")})
                 if excl:
                     row["in_headline"] = bool(in_head[i])
@@ -320,10 +351,10 @@ def main() -> int:
     folds = [f["fold_id"] for f in scheme["outer_folds"]]
     reps = int(proto["metrics"]["bootstrap"].split(" reps")[0].split(",")[-1].strip().split()[-1])
     summary_models = {}
-    for m in MODELS:
+    for m in models:
         pm = preds[preds.model == m]
         for v, col in (("raw", "p_raw"), *cal_cols.items()):
-            if v != "raw" and m not in CALIBRATED:
+            if v != "raw" and m not in calibrated:
                 continue
             y_all, p_all = pm["label"].to_numpy(int), pm[col].astype(float).to_numpy()
             pooled = metrics(y_all, p_all)
@@ -368,6 +399,13 @@ def main() -> int:
             "macro_mean": mean, "macro_min": min(per_perm_macro), "macro_max": max(per_perm_macro),
             "pass_rule": proto["controls"]["leakage_pass"], "pass": abs(mean - 0.5) <= 0.05,
         }
+    if qual:
+        pd.DataFrame(fold_rows_qual).to_csv(out_dir / "metrics_per_fold_quality_excluded.csv", index=False)
+        pfq = pd.DataFrame(fold_rows_qual)
+        summary["sensitivity_quality_excluded"] = {
+            "flags_from": qual, "rows": int(in_qual.sum()), "rows_removed_from_headline": int((in_head & ~in_qual).sum()),
+            "macro": {f"{m}|{v}": {k: (float(g[k].dropna().mean()) if g[k].notna().any() else None) for k in METRIC_KEYS}
+                      for (m, v), g in pfq.groupby(["model", "variant"], sort=False)}}
     if excl:
         pfa = pd.DataFrame(fold_rows_all)
         summary["headline_rows"] = int(in_head.sum())
@@ -445,6 +483,10 @@ def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool, rep
     if v2:
         md += ["Variants: `raw` (uncalibrated), `cal_v2_fe` (primary: fixed-effects Platt, slope from within-group "
                "variation), `cal_v1_registered` (the v1 pooled Platt/isotonic, kept for comparison).", ""]
+    if any(k.split("|")[0] in DIAG_MODELS for k in s["models"]):
+        md += ["Models ending in `_diag` are protocol-v5 diagnostics (flight context: height above ground). They are "
+               "not map-only, not part of H2 or H3, and answer only whether flight context explains the between-region "
+               "base rate.", ""]
     md += ["## Headline: macro over held-out groups", "",
            "| model | variant | macro AUROC | macro AUROC excl. G2 | macro PR-AUC | macro Brier | macro log loss | macro ECE |",
            "|---|---|---:|---:|---:|---:|---:|---:|"]
@@ -521,6 +563,17 @@ def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool, rep
             md.append(f"| {m} | {var} | {fmt(mac['auroc'])} | {fmt(mac['pr_auc'])} | {fmt(mac['brier'])} | "
                       f"{fmt(mac['log_loss'])} | {fmt(mac['ece'])} |")
         md += ["", f"Per group: `{out}/metrics_per_fold_all_frames.csv`."]
+    sq = s.get("sensitivity_quality_excluded")
+    if sq:
+        md += ["", "## Sensitivity — label-free frame-quality flags excluded (macro over held-out groups)", "",
+               f"Headline rows minus frames flagged in `{sq['flags_from']}` ({sq['rows_removed_from_headline']} rows removed, "
+               f"{sq['rows']} kept).", "",
+               "| model | variant | macro AUROC | macro PR-AUC | macro Brier | macro log loss | macro ECE |",
+               "|---|---|---:|---:|---:|---:|---:|"]
+        for key, mac in sq["macro"].items():
+            m, var = key.split("|")
+            md.append(f"| {m} | {var} | {fmt(mac['auroc'])} | {fmt(mac['pr_auc'])} | {fmt(mac['brier'])} | "
+                      f"{fmt(mac['log_loss'])} | {fmt(mac['ece'])} |")
     (reports_dir / f"{name}_summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
 

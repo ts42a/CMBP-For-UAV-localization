@@ -15,6 +15,8 @@ Checks (each re-uses an existing script; nothing is written to reports/ or resul
   predictor_v4  protocol v4 with half the pilot frames excluded: predictions equal v3, the
                 all-frames sensitivity equals the v3 headline, headline metrics match a
                 recomputation from the flagged rows (deviation D5)
+  predictor_v5  protocol v5 (proposed) on the pilot with the headline exclusion off: the registered
+                models' predictions equal v3 exactly and the two _diag models are present
   labels        golden reproduction: the frozen labeller on 2 pilot frames (18 attempts) agrees
                 with results/stage5/pilot/outcomes.csv (scripts/protocol/stage10_compare.py)
 
@@ -36,8 +38,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PY = sys.executable
-CHECKS = ("env", "frozen", "splits", "predictor", "predictor_v4", "labels")
-SLOW = ("predictor_v4", "labels")
+CHECKS = ("env", "frozen", "splits", "predictor", "predictor_v4", "predictor_v5", "labels")
+SLOW = ("predictor_v4", "predictor_v5", "labels")
 PILOT_OUT = ROOT / "results" / "stage5" / "pilot" / "outcomes.csv"
 V3_DIR = ROOT / "results" / "stage8" / "pilot_v3"
 BENCH_REGIONS = "01,02,03,04,05,06,08,09,10,11"
@@ -177,6 +179,26 @@ def check_predictor_v4(tmp: Path) -> str:
         if len(np.unique(y)) == 2 and abs(r.auroc - roc_auc_score(y, p)) > 1e-12:
             raise Fail(f"headline AUROC for {fold}/{m} does not match the flagged rows")
     return f"headline {s4['headline_rows']}/{s4['n_rows']} rows; training unchanged; sensitivity == v3; metrics recomputed"
+
+
+def check_predictor_v5(tmp: Path) -> str:
+    import pandas as pd
+    import yaml
+
+    proto = yaml.safe_load((ROOT / "configs/predictor_protocol_v5.yaml").read_text(encoding="utf-8"))
+    del proto["evaluation"]["headline_exclude_frames"]  # every pilot frame would be excluded
+    (tmp / "protocol_v5_pilot.yaml").write_text(yaml.safe_dump(proto, sort_keys=False), encoding="utf-8")
+    out, s5 = evaluate(str(tmp / "protocol_v5_pilot.yaml"), tmp, "v5_pilot")
+    p5 = pd.read_csv(out / "predictions.csv", dtype={"region": str})
+    p3 = pd.read_csv(V3_DIR / "predictions.csv", dtype={"region": str})
+    cols = [c for c in p3.columns if c != "protocol_sha256"]
+    reg = p5[p5.model.isin(p3.model.unique())].reset_index(drop=True)
+    if not reg[cols].equals(p3[cols]):
+        raise Fail("v5 changed the registered models' predictions")
+    diag = sorted(set(p5.model) - set(p3.model))
+    if diag != sorted(proto["diagnostic_models"]["models"]):
+        raise Fail(f"diagnostic models {diag} != protocol {proto['diagnostic_models']['models']}")
+    return f"registered predictions == v3; diagnostics present: {', '.join(diag)}"
 
 
 def check_labels(tmp: Path) -> str:
