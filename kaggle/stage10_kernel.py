@@ -171,6 +171,10 @@ def main() -> int:
         problems.append(f"missing Python modules (internet is off): {missing}")
     if code is None:
         problems.append("code input not found (kaggle/stage10_runner.py)")
+    else:
+        need = [n for n in ("manifest.csv", "satellite_metadata.csv") if not (code / "datasets" / "manifests" / n).is_file()]
+        if need:  # git-ignored locally; scripts/protocol/package_kaggle.py adds them to the code bundle
+            problems.append(f"code bundle lacks datasets/manifests/{need}; rebuild it with package_kaggle.py")
     if emb is None or th is None:
         problems.append("cache input not found (embeddings/ and torch_home/hub/)")
     bench = [r for r in REGIONS if r != "07"]
@@ -191,11 +195,20 @@ def main() -> int:
         if not (lp.exists() or lp.is_symlink()):
             dir_link(p, lp)
 
+    # torch.hub creates <TORCH_HOME>/hub/trusted_list on every load, and /kaggle/input is read-only:
+    # give it a writable hub folder that links to the read-only DINOv2 repo and weights.
+    th_view = SCRATCH / "torch_home"
+    (th_view / "hub").mkdir(parents=True, exist_ok=True)
+    for name in ("facebookresearch_dinov2_main", "checkpoints"):
+        lp = th_view / "hub" / name
+        if not (lp.exists() or lp.is_symlink()):
+            dir_link(th / "hub" / name, lp)
+
     dst = WORK / "CMBL"
     if not dst.exists():
         shutil.copytree(code, dst, ignore=shutil.ignore_patterns("__pycache__"))
     cmd = [sys.executable, str(dst / "kaggle" / "stage10_runner.py"), "--code-root", str(dst),
-           "--data-root", str(view), "--emb-root", str(emb), "--torch-home", str(th), "--out", OUT_REL,
+           "--data-root", str(view), "--emb-root", str(emb), "--torch-home", str(th_view), "--out", OUT_REL,
            *runner_extra]
     print("running: " + " ".join(cmd), flush=True)
     rc = subprocess.call(cmd)

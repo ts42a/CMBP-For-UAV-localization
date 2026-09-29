@@ -67,22 +67,15 @@ Check the dataset size limit shown in the upload dialog; if 24 GB is not allowed
 If `tifffile` is missing: `!pip install tifffile` (needs internet; otherwise add it as a wheel dataset).
 
 ```
-!python /kaggle/working/CMBL/kaggle/stage10_runner.py \
-    --code-root /kaggle/working/CMBL \
-    --data-root /kaggle/input/uav-visloc/UAV_VisLoc_dataset \
-    --emb-root /kaggle/input/cmbl-cache/embeddings \
-    --torch-home /kaggle/input/cmbl-cache/torch_home
+!python /kaggle/working/CMBL/kaggle/stage10_kernel.py
 ```
 
-Adjust the three `/kaggle/input/...` paths to what the input panel shows. `--data-root` must be the
-folder that directly contains `01`, `02`, … `11`.
+The kernel finds the three inputs by content, gives `torch.hub` a writable hub folder (it writes
+`trusted_list` there, and `/kaggle/input` is read-only: passing `--torch-home /kaggle/input/...`
+straight to `stage10_runner.py` fails with `PermissionError`), runs the runner and zips the results.
 
 Expected: about 20 frames at GPU speed plus a short region-10 embedding benchmark. If the session
 stops, rerun the same cell; the labeller resumes without duplicates.
-
-```
-!cd /kaggle/working/CMBL && zip -r /kaggle/working/stage10_kaggle_bench.zip results/stage10/kaggle_bench
-```
 
 Download `stage10_kaggle_bench.zip` from the notebook's output panel.
 

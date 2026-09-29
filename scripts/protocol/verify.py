@@ -21,7 +21,11 @@ Checks (each re-uses an existing script; nothing is written to reports/ or resul
                 with results/stage5/pilot/outcomes.csv (scripts/protocol/stage10_compare.py)
 
 Scratch output goes to build/verify/<timestamp>/ (git-ignored); the result table is also written
-to build/verify/last_verify.json. Exit code 0 only if every selected check passes.
+to build/verify/last_verify.json. Exit code 0 only if every selected check passes, 1 if any fails,
+2 if none fails but some were skipped.
+
+A check SKIPs when it needs local files that are not in the public repository (UAV-VisLoc and the
+per-frame metadata derived from it, which are not cleared for redistribution; see the README).
 """
 from __future__ import annotations
 
@@ -47,6 +51,30 @@ BENCH_REGIONS = "01,02,03,04,05,06,08,09,10,11"
 
 class Fail(Exception):
     pass
+
+
+class Skip(Exception):
+    pass
+
+
+LOCAL = {  # local-only inputs (git-ignored), per check
+    "frozen": ["results/stage5/pilot/outcomes.csv"],
+    "splits": ["datasets/manifests/manifest.csv"],
+    "predictor": ["results/stage6_7/pilot/features.csv", "results/stage6_7/pilot/embeddings.npz"],
+    "predictor_v4": ["results/stage6_7/pilot/features.csv", "results/stage6_7/pilot/embeddings.npz",
+                     "results/stage5/pilot/outcomes.csv"],
+    "predictor_v5": ["results/stage6_7/pilot/features.csv", "results/stage6_7/pilot/embeddings.npz",
+                     "datasets/manifests/frame_agl.csv"],
+    "labels": ["datasets/raw/UAV_VisLoc_dataset", "datasets/manifests/manifest.csv",
+               "datasets/manifests/satellite_metadata.csv", "datasets/cache/embeddings",
+               "results/stage5/pilot/outcomes.csv"],
+}
+
+
+def needs(check: str) -> None:
+    missing = [p for p in LOCAL.get(check, []) if not (ROOT / p).exists()]
+    if missing:
+        raise Skip("needs local files not in the public repository: " + ", ".join(missing))
 
 
 def sha256(p: Path) -> str:
@@ -236,20 +264,27 @@ def main() -> int:
         t0 = time.perf_counter()
         print(f"[{c}] ...", flush=True)
         try:
-            detail, ok = fns[c](tmp), True
+            needs(c)
+            detail, status = fns[c](tmp), "PASS"
+        except Skip as e:
+            detail, status = str(e), "SKIP"
         except Fail as e:
-            detail, ok = str(e), False
-        results.append({"check": c, "pass": ok, "seconds": round(time.perf_counter() - t0, 1), "detail": detail})
-        print(f"[{c}] {'PASS' if ok else 'FAIL'} ({results[-1]['seconds']} s): {detail}", flush=True)
+            detail, status = str(e), "FAIL"
+        results.append({"check": c, "pass": status == "PASS", "status": status,
+                        "seconds": round(time.perf_counter() - t0, 1), "detail": detail})
+        print(f"[{c}] {status} ({results[-1]['seconds']} s): {detail}", flush=True)
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     dirty = bool(subprocess.run(["git", "status", "--porcelain", "--", "scripts", "configs"], cwd=ROOT,
                                 capture_output=True, text=True).stdout.strip())
     rec = {"commit": commit, "dirty_scripts_or_configs": dirty, "python": sys.executable, "scratch": str(tmp),
            "all_pass": all(r["pass"] for r in results), "results": results}
     (ROOT / "build" / "verify" / "last_verify.json").write_text(json.dumps(rec, indent=2), encoding="utf-8")
-    print(f"\n{'ALL PASS' if rec['all_pass'] else 'FAILED'} — {sum(r['pass'] for r in results)}/{len(results)} checks "
+    failed = any(r["status"] == "FAIL" for r in results)
+    skipped = sum(r["status"] == "SKIP" for r in results)
+    verdict = "FAILED" if failed else ("ALL PASS" if not skipped else f"INCOMPLETE ({skipped} skipped: local files missing)")
+    print(f"\n{verdict} — {sum(r['pass'] for r in results)}/{len(results)} checks passed "
           f"at {commit}{' (uncommitted changes)' if dirty else ''}; scratch {tmp.relative_to(ROOT)}")
-    return 0 if rec["all_pass"] else 1
+    return 1 if failed else (2 if skipped else 0)
 
 
 if __name__ == "__main__":

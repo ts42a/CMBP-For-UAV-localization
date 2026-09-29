@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Build the two small Kaggle upload bundles for Stage 10/11 (see kaggle/README.md).
 
-  cmbl-code-<commit>.zip  committed code only (git archive of scripts, configs, manifests, kaggle/),
-                          top-level folder CMBL/, plus CMBL/BUNDLE_COMMIT
+  cmbl-code-<commit>.zip  committed code (git archive of scripts, configs, kaggle/), top-level folder
+                          CMBL/, plus CMBL/BUNDLE_COMMIT, plus the local dataset manifests
+                          (datasets/manifests/*.csv: UAV-VisLoc metadata, git-ignored because it is
+                          not cleared for public redistribution; the Kaggle dataset stays private)
   cmbl-cache.zip          embeddings/ (tile-embedding caches) and torch_home/hub/ (DINOv2 repo +
                           weights), so the notebook needs no internet
 
@@ -24,6 +26,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CODE_PATHS = ["scripts", "configs", "datasets/manifests", "kaggle", "requirements-localization.txt"]
+MANIFEST_DIR = ROOT / "datasets" / "manifests"
+REQUIRED_MANIFESTS = ("manifest.csv", "satellite_metadata.csv")  # read by the labeller at run time
 
 
 def sha256(p: Path) -> str:
@@ -54,6 +58,25 @@ def main() -> int:
         for item in src.infolist():
             dst.writestr(item, src.read(item.filename))
         dst.writestr("CMBL/BUNDLE_COMMIT", commit + "\n")
+        packed = set(src.namelist())
+        local = sorted(MANIFEST_DIR.glob("*.csv"))
+        missing = [n for n in REQUIRED_MANIFESTS if not (MANIFEST_DIR / n).is_file()]
+        if missing:
+            raise SystemExit(f"missing local manifests {missing}: rebuild them from the dataset (see README)")
+        frozen = json.loads((ROOT / "configs" / "splits_v1.json").read_text(encoding="utf-8"))["manifest_sha256"]
+        if sha256(MANIFEST_DIR / "manifest.csv") != frozen:
+            raise SystemExit("datasets/manifests/manifest.csv does not match manifest_sha256 in configs/splits_v1.json; "
+                             "the frozen splits were built from a different manifest, so labels would not be comparable")
+        for f in local:
+            arc = f"CMBL/datasets/manifests/{f.name}"
+            if arc not in packed:  # a committed copy (older commits) wins; otherwise add the local file
+                dst.write(f, arc)
+    local_manifests = {f.name: sha256(f) for f in local}
+    with zipfile.ZipFile(code_zip) as z:  # the bundled copies must be byte-identical to the local files
+        bad = [n for n, h in local_manifests.items()
+               if hashlib.sha256(z.read(f"CMBL/datasets/manifests/{n}")).hexdigest() != h]
+    if bad:
+        raise SystemExit(f"bundled manifests differ from the local files: {bad}")
 
     hub = Path(args.torch_hub)
     repo_dir, ckpt = hub / "facebookresearch_dinov2_main", hub / "checkpoints" / "dinov2_vits14_pretrain.pth"
@@ -74,7 +97,8 @@ def main() -> int:
 
     manifest = {
         "commit": commit, "ref": args.ref,
-        "code_zip": {"file": code_zip.name, "bytes": code_zip.stat().st_size, "sha256": sha256(code_zip)},
+        "code_zip": {"file": code_zip.name, "bytes": code_zip.stat().st_size, "sha256": sha256(code_zip),
+                     "local_manifests_sha256": local_manifests},
         "cache_zip": {"file": cache_zip.name, "bytes": cache_zip.stat().st_size, "sha256": sha256(cache_zip),
                       "embedding_files": n, "weights_sha256": sha256(ckpt)},
     }
