@@ -163,6 +163,8 @@ def main() -> int:
     ap.add_argument("--features", default="results/stage6_7/pilot")
     ap.add_argument("--out", default="results/stage8/pilot_v2")
     ap.add_argument("--name", default="stage6_8_pilot_v2")
+    ap.add_argument("--reports-dir", default="reports")
+    ap.add_argument("--figures-dir", default="figures")
     args = ap.parse_args()
 
     proto_path = ROOT / args.protocol
@@ -380,7 +382,7 @@ def main() -> int:
                     "cal_v1_registered": summary_models[f"{m}|cal_v1_registered"]["macro"][k]}
                 for k in ("brier", "log_loss", "ece")}
             for m in CALIBRATED}
-    (ROOT / "reports" / f"{args.name}_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (ROOT / args.reports_dir / f"{args.name}_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     (out_dir / "run_manifest.json").write_text(json.dumps({
         "created_at": datetime.now(timezone.utc).isoformat(), "git_commit": git("rev-parse", "HEAD"),
         "git_dirty_scripts_or_configs": bool(git("status", "--porcelain", "--", "scripts", "configs")),
@@ -388,8 +390,8 @@ def main() -> int:
         "features_csv_sha256": sha256(feat_dir / "features.csv"),
     }, indent=2), encoding="utf-8")
 
-    reliability_figs(preds, folds, ROOT / "figures" / args.name, cal_cols)
-    write_md(summary, per_fold, args.name, args.out, v2)
+    reliability_figs(preds, folds, ROOT / args.figures_dir / args.name, cal_cols)
+    write_md(summary, per_fold, args.name, args.out, v2, ROOT / args.reports_dir)
     return 0
 
 
@@ -429,7 +431,7 @@ def fmt(x, nd: int = 3) -> str:
     return "—" if x is None or (isinstance(x, float) and np.isnan(x)) else f"{x:.{nd}f}"
 
 
-def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool) -> None:
+def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool, reports_dir: Path = ROOT / "reports") -> None:
     md = [f"# {name} — Stages 6-8 predictor summary", "",
           "**Function check on the Stage 5 pilot labels (10 frames per region), not a geographic result.** "
           f"Protocol `{s.get('protocol', 'configs/predictor_protocol_v1.yaml')}` (sha256 `{s['protocol_sha256'][:12]}…`), "
@@ -519,7 +521,7 @@ def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool) -> 
             md.append(f"| {m} | {var} | {fmt(mac['auroc'])} | {fmt(mac['pr_auc'])} | {fmt(mac['brier'])} | "
                       f"{fmt(mac['log_loss'])} | {fmt(mac['ece'])} |")
         md += ["", f"Per group: `{out}/metrics_per_fold_all_frames.csv`."]
-    (ROOT / "reports" / f"{name}_summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    (reports_dir / f"{name}_summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -1,11 +1,35 @@
+# CMBL pinned environment (Python 3.14). Versions are the ones the Stage 5 pilot, the Stages 6-8
+# pilot runs and the Stage 10 mock were produced with. Change a pin only together with
+# `py -3 scripts/protocol/verify.py` passing in the new environment, and record it in reports/progress.md.
+#
+#   py -3.14 -m venv .venv
+#   .venv\Scripts\python -m pip install -r requirements-localization.txt
+#
+# Exactly ONE OpenCV package: opencv-python and opencv-contrib-python both install the cv2 folder
+# and overwrite each other. No project code uses contrib-only modules.
+
 # Localization label pipeline (Stage 3B+)
-torch>=2.0
-torchvision>=0.15
-numpy
-opencv-python
-pyyaml
-pyproj
-tifffile
-Pillow
+torch==2.12.1
+torchvision==0.27.1
+numpy==2.4.6
+opencv-python==4.13.0.92
+PyYAML==6.0.3
+pyproj==3.8.0
+tifffile==2026.9.20
+pillow==12.2.0
+
+# Predictors, calibration, analysis and figures (Stages 6-8)
+scipy==1.17.1
+pandas==3.0.3
+scikit-learn==1.9.0
+matplotlib==3.11.0
+
+# Stage 1-2 audit scripts only
+gdown==6.4.0
+psutil==7.2.2
+shapely==2.1.2
+
+# PC-side Kaggle tooling (scripts/protocol/kaggle_stage10.py); not needed on Kaggle
+kaggle==2.2.4
 
 # DINOv2 weights via torch.hub (facebookresearch/dinov2) — no separate pip package.

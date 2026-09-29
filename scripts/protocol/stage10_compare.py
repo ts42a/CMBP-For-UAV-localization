@@ -57,6 +57,7 @@ def main() -> int:
     ap.add_argument("--reference", default="results/stage5/pilot/outcomes.csv")
     ap.add_argument("--expect-frames", type=int, default=20)
     ap.add_argument("--name", default="stage10_benchmark")
+    ap.add_argument("--reports-dir", default="reports", help="where <name>.{md,json} go (verify uses a temp dir)")
     args = ap.parse_args()
 
     run_dir = ROOT / args.run_dir
@@ -108,7 +109,7 @@ def main() -> int:
     summary = {"run_dir": args.run_dir, "checks": checks, "disagreements": diffs,
                "timing_run": timing(run), "timing_pc_reference_same_keys": timing([ref[k] for k in keys if k in ref]),
                "env": env, "runner_timing": tim}
-    (ROOT / "reports" / f"{args.name}.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (ROOT / args.reports_dir / f"{args.name}.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     t_run, t_pc = summary["timing_run"], summary["timing_pc_reference_same_keys"]
     md = [f"# {args.name} — Stage 10 benchmark vs PC reference", "",
@@ -128,7 +129,7 @@ def main() -> int:
     md += ["None."] if not diffs else ["| key | run | PC | inliers run/PC | position diff m |", "|---|---|---|---|---:|"] + [
         f"| {d['key']['filename']} R={d['key']['radius_m']} k={d['key']['offset_k']} | {d['run_outcome']} | {d['ref_outcome']} | "
         f"{d['run_inliers']}/{d['ref_inliers']} | {d['position_diff_m']} |" for d in diffs]
-    (ROOT / "reports" / f"{args.name}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    (ROOT / args.reports_dir / f"{args.name}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print(json.dumps(checks, indent=2))
     return 0 if checks["agreement_pass"] else 1
 

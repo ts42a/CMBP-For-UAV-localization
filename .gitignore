@@ -8,3 +8,6 @@ __pycache__/
 *.part
 results/logs/
 build/
+.venv/
+results/full/
+figures/full/
