@@ -160,3 +160,22 @@ deviations:
     data_used: Stage 5 pilot labels and the v2 pilot predictor run
     held_out_regions_seen: pilot outcomes and pilot predictor results, all regions
     safeguards: Adds a check only; no estimate changes. Code verified to reproduce the v1 and v2 runs byte-for-byte.
+  - id: D5
+    date: '2026-09-29'
+    type: evaluation-set rule added to the predictor protocol, before full-scale labels (Stages 6-8)
+    change: >
+      configs/predictor_protocol_v4.yaml supersedes v3. The 110 Stage 5 pilot frames
+      (results/stage5/pilot/outcomes.csv, key region + filename) are excluded from every headline
+      test metric, control and figure; they stay in training, inner cross-fitting and calibrator
+      fitting. All-frames metrics are reported as a sensitivity analysis. The H3 table also shows
+      M0_constant for comparison (reporting only). Models, features, calibration, controls,
+      splits, labels and tolerances unchanged.
+    reason: >
+      D3 and D4 were decided after the pilot's held-out-region results had been seen, and the pilot
+      frames will reappear in the full-scale label table. Testing on them would evaluate on data
+      that shaped the method.
+    data_used: none new (decided from the project evaluation of 2026-09-29, no new outcomes seen)
+    held_out_regions_seen: nothing beyond D3/D4 (pilot outcomes and pilot predictor results)
+    safeguards: >
+      Decided before any full-scale label exists. Code verified to reproduce the v3 pilot run
+      byte-for-byte with the rule absent, and tested on the pilot with a partial exclusion list.

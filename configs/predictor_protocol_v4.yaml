@@ -1,0 +1,84 @@
+schema_version: predictor_protocol_v4
+status: frozen_before_full_labels
+date: '2026-09-29'
+supersedes: configs/predictor_protocol_v3.yaml
+purpose: >
+  Adds one evaluation rule: headline test metrics exclude the Stage 5 pilot frames. Everything
+  else is identical to v3 (calibration, models, features, controls, splits, labels). Logged as
+  deviation D5 in configs/preregistration_v1.yaml. This is the protocol for the full-scale run.
+reason: >
+  The Stages 6-8 pilot ran leave-one-group-out over every region, and protocol v2 (D3) and v3 (D4)
+  were written after its held-out results were seen. The pilot frames (110 frames, ~1.6% of the
+  release) will also be in the full-scale label table, so evaluating on them would test on data
+  that shaped the method. Excluding them from test metrics keeps the held-out evaluation clean at
+  almost no cost; they remain valid training data when their region is a source region.
+
+changes:
+  - evaluation: headline_exclude_frames (Stage 5 pilot frames) left out of every headline metric, control and figure; kept for training
+  - reporting: all-frames metrics reported as a sensitivity analysis; H3 table also compares calibrated predictors with M0_constant
+
+inputs:
+  outcomes: results/stage5/pilot/outcomes.csv
+  prereg: configs/preregistration_v1.yaml
+  splits: configs/splits_v1.json
+  scheme: primary_7group
+  excluded_regions: ['07']  # deviation D2
+  localizer_dev_regions: ['03']
+  features_protocol: configs/predictor_protocol_v1.yaml
+  features_protocol_sha256: 90efed076da2a50e8d8dfe30354315c3c4cf87c3705bcb8b32338c38e496baec
+
+label: unchanged from v1 (accepted_correct at 100 m; one row per windowed attempt)
+predictor_inputs: unchanged from v1 (prior centre, radius, satellite map only)
+features: unchanged from v1 (tiling, texture_features, dino_features, distinctiveness); feature files built under v1 are reused
+models: unchanged from v1 (M0_constant, M1_texture, M2_dino, M3_dino_distinct; fixed hyperparameters, no tuning)
+cross_fitting: unchanged from v1 (outer leave-one-group-out; inner_folds give OOF predictions)
+
+calibration:  # unchanged from v2 and v3
+  primary: fe_platt
+  fe_platt:
+    slope: >
+      LogisticRegression(C=10, fit_intercept=False, max_iter=5000) on [logit(OOF p), one-hot source group],
+      fitted on source rows of groups that contain both outcome classes; slope clipped at >= 0.
+    intercept: With the slope fixed, one intercept fitted by maximum likelihood on all source OOF rows, bounded search in [-20, 20].
+    apply: p_cal = sigmoid(slope * logit(raw test p) + intercept). No test-region labels or map statistics are used.
+  registered_comparison: v1 calibration (Platt vs isotonic chosen on pooled OOF), reported as cal_v1_registered
+  apply_to: [M1_texture, M2_dino, M3_dino_distinct]
+  logit_clip: [1.0e-6, 0.999999]
+
+metrics:  # unchanged from v2
+  discrimination: [auroc, pr_auc]  # undefined (null) when a held-out group has one class
+  probability: [brier, log_loss, ece]
+  ece_bins: 10 equal-width  # preregistration_v1 stage8
+  prob_clip: [1.0e-6, 0.999999]
+  headline: macro over held-out groups (AUROC and PR-AUC over groups where defined), plus per group
+  pooled: Brier, log loss and ECE pooled over all test rows are reported; pooled AUROC and PR-AUC are secondary and flagged unreliable under leave-one-group-out
+  separate: fold G2 (contains localizer-dev region 03) reported separately as well as included
+  bootstrap: resample region groups with replacement, 1000 reps, seed 20260928, percentile 95% CI
+  h3_comparison: macro Brier and log loss, calibrated (fe_platt) vs raw, same predictor
+
+controls:
+  shuffle_labels: >
+    confound_diagnostic — permute labels within each training group and refit M1, 20 permutations
+    (seed 20260928); reported, no pass/fail (it keeps group success rates, so between-region
+    confounds can move it away from 0.5)
+  shuffle_permutations: 20
+  leakage_control: >
+    global — permute all source labels together (destroying within- and between-group structure)
+    and refit M1, 20 permutations, run after the confound diagnostic from the same seeded stream
+  leakage_permutations: 20
+  leakage_pass: mean over permutations of the macro AUROC within 0.50 +/- 0.05
+
+checks:
+  - no test-group row in any scaler, PCA, model or calibrator fit set (asserted)
+  - fe_platt is monotone non-decreasing, so its AUROC equals the raw AUROC in every two-class fold (asserted)
+  - leakage_control passes
+  - one protocol sha256 in every output
+
+evaluation:  # new in v4 (deviation D5)
+  headline_exclude_frames: results/stage5/pilot/outcomes.csv   # key (region, filename); 110 frames
+  applies_to: >
+    test rows only: per-group and macro metrics, pooled metrics and bootstrap CIs, H3 comparison,
+    leakage control and confound diagnostic AUROCs, reliability diagrams. Training, inner
+    cross-fitting and calibrator fitting use every source row, pilot frames included.
+  sensitivity: the same metrics over all test rows, reported separately (metrics_per_fold_all_frames.csv)
+  h3_reporting: calibrated (fe_platt) macro Brier and log loss are also shown against M0_constant; reporting only, H3 as registered is unchanged

@@ -9,6 +9,9 @@ applied to the untouched test group.
   v1 (registered pilot run): pooled Platt vs isotonic, chosen on source OOF.
   v2 (primary from 2026-09-28, deviation D3): fixed-effects Platt, whose slope comes from
       within-group variation only; v1 calibration still reported as cal_v1_registered.
+  v4 (deviation D5): headline test metrics exclude the frames listed in
+      evaluation.headline_exclude_frames (the Stage 5 pilot frames, whose outcomes shaped v2/v3);
+      training is unchanged and all-frames metrics are reported as a sensitivity analysis.
 
   py -3 scripts/predictor/evaluate_predictors.py --protocol configs/predictor_protocol_v2.yaml \\
       --features results/stage6_7/pilot --out results/stage8/pilot_v2 --name stage6_8_pilot_v2
@@ -166,7 +169,7 @@ def main() -> int:
     proto = yaml.safe_load(proto_path.read_text(encoding="utf-8"))
     proto_sha = sha256(proto_path)
     # v2 and later share fixed-effects calibration; v3 adds the global-permutation leakage control.
-    v2 = proto["schema_version"] in ("predictor_protocol_v2", "predictor_protocol_v3")
+    v2 = proto["schema_version"] in ("predictor_protocol_v2", "predictor_protocol_v3", "predictor_protocol_v4")
     # Calibrated variants: name -> prediction column.
     cal_cols = {"cal_v1_registered": "p_cal_v1", "cal_v2_fe": "p_cal_fe"} if v2 else {"calibrated": "p_cal"}
     v1_name = "cal_v1_registered" if v2 else "calibrated"
@@ -183,6 +186,16 @@ def main() -> int:
     seed = int(proto["metrics"]["bootstrap"].split("seed ")[1].split(",")[0])
     rng = np.random.default_rng(seed)
 
+    # v4 (D5): rows whose (region, filename) is listed are kept for training but left out of the
+    # headline test metrics. Without the key every row is headline, so v1-v3 runs are unchanged.
+    excl = proto.get("evaluation", {}).get("headline_exclude_frames")
+    in_head = np.ones(len(d.y), bool)
+    if excl:
+        ex = pd.read_csv(ROOT / excl, usecols=["region", "filename"], dtype=str).drop_duplicates()
+        keys = set(zip(ex["region"], ex["filename"]))
+        in_head = np.array([(r, f) not in keys for r, f in zip(d.df["region"].astype(str), d.df["filename"].astype(str))])
+    fold_rows_all: list[dict] = []
+
     pred_rows, fold_rows, shuffle_auc, shuffle_perm, cal_choice = [], [], {}, {}, {}
     leak_perm: dict[str, list[float]] = {}
     for fold in scheme["outer_folds"]:
@@ -190,6 +203,10 @@ def main() -> int:
         te = np.flatnonzero(d.group == test_g)
         src = np.flatnonzero(d.group != test_g)
         assert len(te) and not set(te) & set(src)
+        hm = in_head[te]
+        if not hm.any():
+            raise SystemExit(f"fold {test_g}: no headline test rows left after {excl}")
+        y_te = d.y[te][hm]
 
         oof = {m: np.full(len(d.y), np.nan) for m in MODELS}
         for inner in fold["inner_folds"]:
@@ -237,8 +254,8 @@ def main() -> int:
                 gi = src[d.group[src] == g]
                 y_sh[gi] = rng.permutation(d.y[gi])
             p_sh = fit_predict("M1_texture", d, src, te, y=y_sh)
-            if len(np.unique(d.y[te])) == 2:
-                aucs.append(float(roc_auc_score(d.y[te], p_sh)))
+            if len(np.unique(y_te)) == 2:
+                aucs.append(float(roc_auc_score(y_te, p_sh[hm])))
         shuffle_auc[test_g] = float(np.mean(aucs)) if aucs else None
         shuffle_perm[test_g] = aucs
 
@@ -249,8 +266,8 @@ def main() -> int:
             y_sh = d.y.copy()
             y_sh[src] = rng.permutation(d.y[src])
             p_sh = fit_predict("M1_texture", d, src, te, y=y_sh)
-            if len(np.unique(d.y[te])) == 2:
-                leak.append(float(roc_auc_score(d.y[te], p_sh)))
+            if len(np.unique(y_te)) == 2:
+                leak.append(float(roc_auc_score(y_te, p_sh[hm])))
         leak_perm[test_g] = leak
 
         def cal_label(v: str, m: str) -> str:
@@ -261,10 +278,12 @@ def main() -> int:
         for m in MODELS:
             variants = {"raw": raw[m]} | ({v: cal[v][m] for v in cal_cols} if m in CALIBRATED else {})
             for v, p in variants.items():
-                fold_rows.append({"fold": test_g, "regions": ",".join(sorted(set(d.df["region"].iloc[te]))),
-                                  "localizer_dev_contaminated": bool(fold.get("localizer_dev_contaminated", False)),
-                                  "model": m, "variant": v, "calibrator": cal_label(v, m) if v != "raw" else "",
-                                  **metrics(d.y[te], p)})
+                info = {"fold": test_g, "regions": ",".join(sorted(set(d.df["region"].iloc[te]))),
+                        "localizer_dev_contaminated": bool(fold.get("localizer_dev_contaminated", False)),
+                        "model": m, "variant": v, "calibrator": cal_label(v, m) if v != "raw" else ""}
+                fold_rows.append({**info, **metrics(y_te, p[hm])})
+                if excl:
+                    fold_rows_all.append({**info, **metrics(d.y[te], p)})
         for j, i in enumerate(te):
             base = {k: d.df[k].iloc[i] for k in ("region", "group_7", "filename", "radius_m", "offset_k")}
             for m in MODELS:
@@ -277,6 +296,8 @@ def main() -> int:
                 else:
                     row.update({"p_cal": float(cal[v1_name][m][j]) if m in CALIBRATED else "",
                                 "calibrator": chosen.get(m, "")})
+                if excl:
+                    row["in_headline"] = bool(in_head[i])
                 row["protocol_sha256"] = proto_sha
                 pred_rows.append(row)
         extra = {m: round(fe[m][0], 3) for m in fe} if v2 else ""
@@ -289,6 +310,9 @@ def main() -> int:
     per_fold = pd.DataFrame(fold_rows)
     preds.to_csv(out_dir / "predictions.csv", index=False)
     per_fold.to_csv(out_dir / "metrics_per_fold.csv", index=False)
+    if excl:
+        pd.DataFrame(fold_rows_all).to_csv(out_dir / "metrics_per_fold_all_frames.csv", index=False)
+        preds = preds[preds["in_headline"]]  # predictions.csv above keeps every row, flagged
 
     # Pooled metrics with region-group bootstrap CIs, and macro over folds where defined.
     folds = [f["fold_id"] for f in scheme["outer_folds"]]
@@ -342,6 +366,13 @@ def main() -> int:
             "macro_mean": mean, "macro_min": min(per_perm_macro), "macro_max": max(per_perm_macro),
             "pass_rule": proto["controls"]["leakage_pass"], "pass": abs(mean - 0.5) <= 0.05,
         }
+    if excl:
+        pfa = pd.DataFrame(fold_rows_all)
+        summary["headline_rows"] = int(in_head.sum())
+        summary["headline_excluded"] = {"frames_from": excl, "rows_excluded": int((~in_head).sum())}
+        summary["sensitivity_all_frames"] = {
+            f"{m}|{v}": {k: (float(g[k].dropna().mean()) if g[k].notna().any() else None) for k in METRIC_KEYS}
+            for (m, v), g in pfa.groupby(["model", "variant"], sort=False)}
     if v2:
         summary["protocol"] = args.protocol
         summary["h3_macro"] = {
@@ -403,6 +434,12 @@ def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool) -> 
           "**Function check on the Stage 5 pilot labels (10 frames per region), not a geographic result.** "
           f"Protocol `{s.get('protocol', 'configs/predictor_protocol_v1.yaml')}` (sha256 `{s['protocol_sha256'][:12]}…`), "
           f"fixed hyperparameters, region 07 excluded (deviation D2). Rows {s['n_rows']}, prevalence {s['prevalence']:.3f}.", ""]
+    hx = s.get("headline_excluded")
+    if hx:
+        md += [f"**Headline rows {s['headline_rows']}** of {s['n_rows']}: test rows of frames listed in "
+               f"`{hx['frames_from']}` ({hx['rows_excluded']} rows) are left out of every headline metric, "
+               "control and figure (deviation D5); they stay in training. All-frames results are in the "
+               "sensitivity section.", ""]
     if v2:
         md += ["Variants: `raw` (uncalibrated), `cal_v2_fe` (primary: fixed-effects Platt, slope from within-group "
                "variation), `cal_v1_registered` (the v1 pooled Platt/isotonic, kept for comparison).", ""]
@@ -415,14 +452,26 @@ def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool) -> 
         md.append(f"| {m} | {var} | {fmt(mac['auroc'])} | {fmt(mx['auroc'])} | {fmt(mac['pr_auc'])} | "
                   f"{fmt(mac['brier'])} | {fmt(mac['log_loss'])} | {fmt(mac['ece'])} |")
     if v2:
-        md += ["", "### H3 check: does source-fitted calibration improve held-out probability quality?", "",
-               "| model | macro Brier raw → fe (v1) | macro log loss raw → fe (v1) | fe better on both |",
-               "|---|---|---|---|"]
+        md += ["", "### H3 check: does source-fitted calibration improve held-out probability quality?", ""]
+        if hx:
+            m0 = s["models"]["M0_constant|raw"]["macro"]
+            md += ["The constant model M0 (source success rate) is shown beside each row: a calibrated predictor "
+                   "that does not beat it carries no usable probability information in unseen regions.", "",
+                   "| model | macro Brier raw → fe (v1) | macro log loss raw → fe (v1) | fe better on both | "
+                   f"fe better than M0 on both (M0 Brier {fmt(m0['brier'])}, log loss {fmt(m0['log_loss'])}) |",
+                   "|---|---|---|---|---|"]
+        else:
+            md += ["| model | macro Brier raw → fe (v1) | macro log loss raw → fe (v1) | fe better on both |",
+                   "|---|---|---|---|"]
         for m, h in s["h3_macro"].items():
             b, l = h["brier"], h["log_loss"]
             better = b["cal_v2_fe"] < b["raw"] and l["cal_v2_fe"] < l["raw"]
-            md.append(f"| {m} | {fmt(b['raw'])} → {fmt(b['cal_v2_fe'])} ({fmt(b['cal_v1_registered'])}) | "
-                      f"{fmt(l['raw'])} → {fmt(l['cal_v2_fe'])} ({fmt(l['cal_v1_registered'])}) | {'yes' if better else 'no'} |")
+            row = (f"| {m} | {fmt(b['raw'])} → {fmt(b['cal_v2_fe'])} ({fmt(b['cal_v1_registered'])}) | "
+                   f"{fmt(l['raw'])} → {fmt(l['cal_v2_fe'])} ({fmt(l['cal_v1_registered'])}) | {'yes' if better else 'no'} |")
+            if hx:
+                beats = b["cal_v2_fe"] < m0["brier"] and l["cal_v2_fe"] < m0["log_loss"]
+                row += f" {'yes' if beats else 'no'} |"
+            md.append(row)
     md += ["", "## Pooled probability quality over all held-out rows (95% CI: region-group bootstrap)", "",
            "| model | variant | Brier (CI) | log loss (CI) | ECE |", "|---|---|---|---|---:|"]
     for key, v in s["models"].items():
@@ -461,6 +510,15 @@ def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool) -> 
     md += ["", "AUROC and PR-AUC are undefined (—) for a held-out group with one outcome class. "
            "(dev) marks the fold containing localizer-dev region 03.", "",
            f"Reliability diagrams: `figures/{name}/reliability_<model>.png`. Per-row predictions and per-fold metrics: `{out}/`."]
+    if hx:
+        md += ["", "## Sensitivity — all frames (headline exclusion off), macro over held-out groups", "",
+               "| model | variant | macro AUROC | macro PR-AUC | macro Brier | macro log loss | macro ECE |",
+               "|---|---|---:|---:|---:|---:|---:|"]
+        for key, mac in s["sensitivity_all_frames"].items():
+            m, var = key.split("|")
+            md.append(f"| {m} | {var} | {fmt(mac['auroc'])} | {fmt(mac['pr_auc'])} | {fmt(mac['brier'])} | "
+                      f"{fmt(mac['log_loss'])} | {fmt(mac['ece'])} |")
+        md += ["", f"Per group: `{out}/metrics_per_fold_all_frames.csv`."]
     (ROOT / "reports" / f"{name}_summary.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
 
