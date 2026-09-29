@@ -4,6 +4,27 @@ Frozen rules: `configs/stage10_benchmark.yaml`. The benchmark runs the frozen lo
 frames (2 per region, region 07 excluded) = 180 attempts, all of which already have PC results
 in `results/stage5/pilot/outcomes.csv`, so the two can be compared directly.
 
+## Automated route (Kaggle API) — does steps 2-5 from the PC
+
+One-time: `py -3 -m pip install --user kaggle`, then create an API token at
+https://www.kaggle.com/settings/api and save it as `~/.kaggle/access_token` (or `kaggle.json`).
+
+```
+py -3 scripts/protocol/package_kaggle.py              # step 1 (bundles)
+py -3 scripts/protocol/kaggle_stage10.py check        # username + weekly GPU quota -> reports/stage10_kaggle_quota.json
+py -3 scripts/protocol/kaggle_stage10.py stage        # upload folders (junctions, nothing copied) + kernel metadata
+py -3 scripts/protocol/kaggle_stage10.py upload       # 3 PRIVATE datasets; timed -> reports/stage10_kaggle_transfer.json
+py -3 scripts/protocol/kaggle_stage10.py push         # GPU (T4) script kernel, internet off: kaggle/stage10_kernel.py
+py -3 scripts/protocol/kaggle_stage10.py wait         # poll until it finishes
+py -3 scripts/protocol/kaggle_stage10.py fetch        # download, unpack to results/stage10/kaggle_bench, compare, cost sheet
+```
+
+`kaggle/stage10_kernel.py` finds the inputs by content (extracted folders or unextracted
+archives), copies the code to `/kaggle/working/CMBL`, runs `stage10_runner.py` unchanged and
+writes `/kaggle/working/stage10_kaggle_bench.zip`. It stops before running anything if a
+Python module, an input or a benchmark region is missing, and writes `kernel_discovery.json`
+saying which. The manual route below does the same by hand.
+
 ## 1. On the PC: build the upload bundles
 
 ```
