@@ -42,6 +42,9 @@ MAX_DEPTH = 6
 # Runner arguments for a staged job (a script kernel gets no argv); kaggle_stage10.py rewrites this
 # line when it stages a Stage 11 region, e.g. ["--label-args", "--set full --regions 02", "--out", ...].
 KERNEL_ARGS: list[str] = []
+# Bundle commit the staged job must run (rewritten with KERNEL_ARGS); a kernel pushed right after a new
+# cmbl-code version can still mount the previous one.
+EXPECT_COMMIT = ""
 
 
 def walk(root: Path, max_depth: int = MAX_DEPTH):
@@ -190,6 +193,12 @@ def main() -> int:
         need = [n for n in ("manifest.csv", "satellite_metadata.csv") if not (code / "datasets" / "manifests" / n).is_file()]
         if need:  # git-ignored locally; scripts/protocol/package_kaggle.py adds them to the code bundle
             problems.append(f"code bundle lacks datasets/manifests/{need}; rebuild it with package_kaggle.py")
+        bc = code / "BUNDLE_COMMIT"
+        got = bc.read_text(encoding="utf-8").strip() if bc.is_file() else "unknown"
+        disc["bundle_commit"] = got
+        if EXPECT_COMMIT and got != EXPECT_COMMIT:
+            problems.append(f"code bundle is {got[:7]}, job expects {EXPECT_COMMIT[:7]}: the new cmbl-code "
+                            "version was not mounted yet; push again in a few minutes")
     if emb is None or th is None:
         problems.append("cache input not found (embeddings/ and torch_home/hub/)")
     bench = [r for r in REGIONS if r != "07"]

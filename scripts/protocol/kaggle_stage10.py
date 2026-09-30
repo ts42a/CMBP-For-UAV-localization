@@ -153,15 +153,17 @@ def cmd_stage(args) -> None:
     print(json.dumps({"staged": str(UPLOAD), "kernel": km, "bundle_commit": bm["commit"]}, indent=2))
 
 
-def stage_kernel(folder: Path, user: str, slug: str, args, job: list[str] | None = None) -> dict:
-    """Kernel folder: kaggle/stage10_kernel.py (with KERNEL_ARGS set to job, if given) + metadata."""
+def stage_kernel(folder: Path, user: str, slug: str, args, job: list[str] | None = None,
+                 expect_commit: str | None = None) -> dict:
+    """Kernel folder: kaggle/stage10_kernel.py (with KERNEL_ARGS / EXPECT_COMMIT set, if given) + metadata."""
     folder.mkdir(parents=True, exist_ok=True)
     src = (ROOT / "kaggle" / "stage10_kernel.py").read_text(encoding="utf-8")
-    if job is not None:
-        line = "KERNEL_ARGS: list[str] = []"
+    for line, value in (("KERNEL_ARGS: list[str] = []", job), ('EXPECT_COMMIT = ""', expect_commit)):
+        if value is None:
+            continue
         if src.count(line) != 1:
             raise SystemExit(f"kaggle/stage10_kernel.py must contain exactly one '{line}'")
-        src = src.replace(line, f"KERNEL_ARGS: list[str] = {json.dumps(job)}")
+        src = src.replace(line, f"{line.split('=')[0]}= {json.dumps(value)}")
     (folder / "stage10_kernel.py").write_text(src, encoding="utf-8")
     km = {"id": f"{user}/{slug}", "title": slug, "code_file": "stage10_kernel.py",
           "language": "python", "kernel_type": "script", "is_private": True, "enable_gpu": True,
@@ -427,7 +429,7 @@ def cmd_labels(args) -> None:
             continue
         folder = label_dir(r)
         job = ["--label-args", f"--set full --regions {r}", "--out", f"results/full/labels_v1/{r}", "--skip-embed-bench"]
-        stage_kernel(folder, user, f"cmbl-s11-labels-{r}", args, job)
+        stage_kernel(folder, user, f"cmbl-s11-labels-{r}", args, job, expect_commit=commit)
         kid = kernel_id(folder)
         st = kernel_status(kid)
         if st in ("running", "queued") and not args.repush:
