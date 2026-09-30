@@ -48,7 +48,7 @@ def main() -> int:
     dirty = subprocess.check_output(["git", "status", "--porcelain", "--", *CODE_PATHS], cwd=ROOT, text=True).strip()
     if dirty and args.ref == "HEAD":
         print("warning: uncommitted changes under the packaged paths are NOT included:\n" + dirty, file=sys.stderr)
-    commit = subprocess.check_output(["git", "rev-parse", args.ref], cwd=ROOT, text=True).strip()
+    commit = subprocess.check_output(["git", "rev-parse", f"{args.ref}^{{commit}}"], cwd=ROOT, text=True).strip()
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
 
