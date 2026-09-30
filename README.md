@@ -73,7 +73,25 @@ resume) and unpack it so that the region folders sit here:
 datasets/raw/UAV_VisLoc_dataset/01 ... 11/   # each: drone/*.JPG, <RR>.csv, satellite<RR>.tif
 ```
 
-Some figures in `figures/` contain crops of UAV-VisLoc imagery.
+Its satellite maps come from Google Earth Pro, so Google Earth/Maps terms and attribution apply to any
+crop of them. Nothing derived from the dataset that could substitute for it is published here:
+
+- figures showing dataset imagery (drone frames, satellite crops, visual-review panels);
+- per-frame metadata: the manifests in `datasets/manifests/*.csv`, and every table carrying frame
+  positions, heights, attitudes or map bounds (e.g. `results/**/outcomes.csv`, `features.csv`, tile
+  embeddings, some Stage 1-3 reports).
+
+Only code, protocols, charts, aggregate reports and model outputs keyed by file name are published.
+After downloading the dataset, rebuild the local metadata:
+
+```bash
+python scripts/audit/full_dataset_audit.py   # manifest.csv, satellite_metadata.csv, inventories (also rewrites the Stage 2 audit reports)
+python scripts/audit/agl_height.py           # frame_agl.csv (downloads SRTM tiles)
+python scripts/audit/frame_quality.py        # frame_quality.csv
+```
+
+A rebuilt `manifest.csv` stores your own absolute image paths, so its sha256 differs from the one
+recorded in `configs/splits_v1.json`; the split assignment itself does not depend on it.
 
 ### Caches (rebuilt locally, git-ignored)
 
@@ -91,7 +109,9 @@ python scripts/protocol/verify.py --quick    # skips the three slow checks
 `verify` confirms the pinned environment, that frozen files still match the hashes the committed
 results were produced with, the splits, byte-for-byte reproduction of the predictor pilot, the
 protocol-v4/v5 rules, and a 2-frame golden reproduction of the localizer labels. Run it before any
-freeze or full run.
+freeze or full run. Checks whose inputs are local-only (the dataset and the metadata derived from it)
+report SKIP with the missing files listed; on a fresh public clone only `env` can run until you
+have the dataset and have rebuilt the pilot outputs.
 
 ## Main commands
 
@@ -113,6 +133,7 @@ Full-scale outputs go under `results/full/` or `figures/full/` and are archived 
 ## Not in this repository
 
 - the dataset, caches and build outputs (see `.gitignore`);
+- figures that show dataset imagery, and per-frame dataset metadata (see Data above);
 - third-party papers and web pages collected for the literature review (`sources/`, copyright);
   `literature/` keeps the notes and the evidence ledger that cite them;
 - internal planning and progress notes.

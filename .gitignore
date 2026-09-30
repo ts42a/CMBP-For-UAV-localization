@@ -64,3 +64,47 @@ venv/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Kaggle benchmark run log: /kaggle paths only, kept as evidence
+!results/stage10/kaggle_bench/runner.log
+
+# UAV-VisLoc imagery (drone frames, Google Earth-derived satellite crops): not cleared for
+# redistribution; panels are rebuilt locally from the dataset. Charts without imagery stay published.
+figures/h1_examples/
+figures/region03_validation/
+figures/sample_audit/
+figures/stage3a/example_*
+figures/stage3b/
+figures/stage3b_gate_v2/
+figures/stage5_pilot/
+figures/stage5_pilot_correct_sample/
+figures/stage5_pilot_incorrect/
+figures/verifier_cmp/
+
+# UAV-VisLoc per-frame metadata and anything carrying its coordinates or annotation values
+# (positions, heights, attitudes, map bounds): not cleared for redistribution. Kept locally;
+# scripts/protocol/package_kaggle.py adds the manifests to the private Kaggle code bundle.
+datasets/manifests/*.csv
+results/**/outcomes.csv
+results/**/*outcomes*.csv
+results/**/features.csv
+results/**/*.npz
+results/pilot/per_query_results*.csv
+results/stage5/pilot_*.csv
+reports/flight_stats.csv
+reports/footprint_validation.md
+reports/region_independence.md
+reports/region_stats.csv
+reports/sample_audit.md
+reports/sample_audit_raw_summary.json
+reports/stage2c_summary.json
+reports/stage3a_pilot_results.csv
+reports/stage3b_compare_dinov2_c2f.csv
+reports/stage3b_compare_dinov2_global.csv
+reports/stage3b_val_dinov2_c2f.csv
+reports/stage3b_val_dinov2_global.csv
+figures/regions_and_tracks.png
+figures/region03_footprints_overview.png
+
+# Kaggle kernel discovery: lists the private /kaggle/input paths, which carry the account name
+results/stage10/**/kernel_discovery.json

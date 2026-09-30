@@ -24,9 +24,20 @@ FIGS = ROOT / "figures" / "region03_validation"
 OVERVIEW = ROOT / "figures" / "region03_footprints_overview.png"
 GEOD = Geod(ellps="WGS84")
 
-# GeoTIFF tags (Stage 2B verified)
-WEST, NORTH = [redacted], [redacted]
-SX, SY = 2.682263763820894e-06, 2.6822856672701103e-06
+
+
+def _georef_03() -> tuple[float, float, float, float]:
+    """Region-03 GeoTIFF corner and pixel scale (Stage 2B verified), read from the local
+    datasets/manifests/satellite_metadata.csv (dataset metadata, not published in the repository)."""
+    import csv
+    meta = ROOT / "datasets" / "manifests" / "satellite_metadata.csv"
+    with meta.open(encoding="utf-8", newline="") as f:
+        row = next(r for r in csv.DictReader(f) if r["filename"] == "satellite03.tif")
+    sx, sy = (float(v) for v in row["pixel_scale"].strip().strip("()").split(",")[:2])
+    return float(row["bounds_west"]), float(row["bounds_north"]), sx, sy
+
+
+WEST, NORTH, SX, SY = _georef_03()
 SAT_GSD_M = 0.276  # approximate mean m/px at this latitude (derived in 2A/2B)
 
 _SAT_MEMMAP: np.ndarray | None = None

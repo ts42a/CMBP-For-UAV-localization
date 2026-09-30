@@ -1,7 +1,8 @@
 # Dataset manifests
 
-Derived, label-free tables about the UAV-VisLoc release (the images and maps themselves are not in
-the repository; see the top-level README).
+Derived, label-free tables about the UAV-VisLoc release. **The CSVs are not in the public
+repository** (git-ignored): they copy the dataset's per-frame annotations, which are not cleared for
+redistribution. Rebuild them locally from the dataset with the scripts below (top-level README, Data).
 
 | file | contents | made by |
 |---|---|---|
