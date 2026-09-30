@@ -1,0 +1,33 @@
+{
+  "label": "kaggle_gpu",
+  "timing_source": "F:\\CMBL\\results\\stage10\\kaggle_bench\\outcomes.csv",
+  "n_timing_rows": 180,
+  "attempt_wall_mean_s": 1.949,
+  "frame_setup_mean_s": 1.22,
+  "frame_total_s": 18.76,
+  "frames_full_run": 6744,
+  "items": {
+    "full_labels": {
+      "units": "6744 frames x 9 attempts",
+      "hours": 35.2
+    },
+    "h1_synthetic": {
+      "units": "6744 synthetic queries x 9 attempts",
+      "hours": 35.2
+    },
+    "replay": {
+      "units": "379,350 attempts = sum(budgets 0.05,0.1,0.2,0.4) x 6744 frames x 3 drift x 5 seeds x 5 policies",
+      "hours": 207.7
+    }
+  },
+  "sessions": 31,
+  "overhead_hours": 0.31,
+  "overhead_source": "measured import + model load 36 s per session (data access not included)",
+  "safety_factor": 1.5,
+  "total_hours_with_safety": 417.5,
+  "weekly_quota_h": 30.0,
+  "quota_weeks": 13.92,
+  "stay_on_kaggle_rule": "projected GPU hours <= 3 x the weekly GPU quota measured on the user's own account",
+  "stay_on_kaggle": false,
+  "labels_plus_h1_hours_with_safety": 105.5
+}

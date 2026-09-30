@@ -1,0 +1,66 @@
+{
+  "platform": "Linux-6.12.90+-x86_64-with-glibc2.35",
+  "python": "3.12.13",
+  "torch": "2.10.0+cu128",
+  "cuda_available": true,
+  "cuda_version": "12.8",
+  "gpu": "Tesla T4",
+  "nvidia_smi": "Tesla T4, 15360 MiB, 580.159.04\nTesla T4, 15360 MiB, 580.159.04",
+  "cpu_count": 4,
+  "tf32_matmul": false,
+  "tf32_cudnn": false,
+  "bundle_commit": "473ace03694e2a44fe2bfbd5ffab5786815414be",
+  "wiring": {
+    "dataset": "symlink",
+    "embeddings": "symlink"
+  },
+  "device_arg": "auto"
+}
+region 01: 918 tiles
+  01_0082.JPG attempts=9 wall=18.9s cpu=68.4s
+  01_0408.JPG attempts=9 wall=24.2s cpu=88.2s
+region 02: 1365 tiles
+  02_0107.JPG attempts=9 wall=19.4s cpu=72.8s
+  02_0536.JPG attempts=9 wall=17.1s cpu=57.1s
+region 03: 3082 tiles
+  03_0077.JPG attempts=9 wall=26.7s cpu=90.3s
+  03_0384.JPG attempts=9 wall=16.9s cpu=63.1s
+region 04: 2516 tiles
+  04_0074.JPG attempts=9 wall=26.7s cpu=88.3s
+  04_0369.JPG attempts=9 wall=18.8s cpu=70.8s
+region 05: 187 tiles
+  05_0047.JPG attempts=9 wall=11.6s cpu=42.4s
+  05_0236.JPG attempts=9 wall=9.2s cpu=34.2s
+region 06: 252 tiles
+  06_0034.JPG attempts=9 wall=20.1s cpu=74.4s
+  06_0172.JPG attempts=9 wall=13.0s cpu=47.7s
+region 08: 2490 tiles
+  08_0107.JPG attempts=9 wall=21.1s cpu=74.4s
+  08_0496.JPG attempts=9 wall=17.8s cpu=64.6s
+region 09: 5355 tiles
+  09_0077.JPG attempts=9 wall=22.9s cpu=78.9s
+  09_0383.JPG attempts=9 wall=19.2s cpu=70.4s
+region 10: 88 tiles
+  10_0014.JPG attempts=9 wall=14.5s cpu=53.0s
+  10_0072.JPG attempts=9 wall=16.2s cpu=61.6s
+region 11: 1736 tiles
+  11_0059.JPG attempts=9 wall=19.3s cpu=71.5s
+  11_0295.JPG attempts=9 wall=21.8s cpu=77.5s
+done: 180 new rows -> /kaggle/working/CMBL/results/stage10/kaggle_bench/outcomes.csv
+{
+  "import_torch_s": 1.75,
+  "model_load_s": 33.825,
+  "label_run_s": 534.935,
+  "gpu_peak_mem_mib_labelling": 119.95751953125,
+  "embedding_bench": {
+    "region": "10",
+    "tiles": 88,
+    "map_km2": 2.259,
+    "seconds": 1.679,
+    "s_per_tile": 0.0191,
+    "s_per_km2": 0.743,
+    "max_abs_diff_vs_pc_cache": 2.2687017917633057e-06,
+    "min_cosine_vs_pc_cache": 0.9999997615814209
+  },
+  "total_runner_s": 606.387
+}

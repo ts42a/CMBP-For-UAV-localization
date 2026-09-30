@@ -25,6 +25,7 @@ import json
 import os
 import platform
 import runpy
+import shlex
 import subprocess
 import sys
 import time
@@ -71,6 +72,8 @@ def main() -> int:
     ap.add_argument("--device", choices=["auto", "cpu"], default="auto")
     ap.add_argument("--max-frames", type=int, default=None, help="local mechanics test only")
     ap.add_argument("--skip-embed-bench", action="store_true")
+    ap.add_argument("--label-args", default=None,
+                    help="labeller arguments replacing the Stage 10 benchmark set, e.g. '--set full --regions 02' (Stage 11)")
     args = ap.parse_args()
 
     t_start = time.perf_counter()
@@ -109,7 +112,7 @@ def main() -> int:
         "gpu": torch.cuda.get_device_name(0) if cuda else None, "nvidia_smi": smi,
         "cpu_count": os.cpu_count(), "tf32_matmul": torch.backends.cuda.matmul.allow_tf32,
         "tf32_cudnn": torch.backends.cudnn.allow_tf32, "bundle_commit": bundle_commit, "wiring": wiring,
-        "device_arg": args.device,
+        "device_arg": args.device, "label_args": args.label_args,
     }
     (out_dir / "env.json").write_text(json.dumps(env, indent=2), encoding="utf-8")
     print(json.dumps(env, indent=2), file=tee)
@@ -122,8 +125,9 @@ def main() -> int:
     model_load_s = time.perf_counter() - t0
 
     # Frozen labeller, in-process so the numerics flags above apply.
-    argv = ["label_windowed.py", "--set", "pilot", "--per-region", "2", "--regions", BENCH_REGIONS,
-            "--out", args.out, "--resume"]
+    frame_set = shlex.split(args.label_args) if args.label_args else [
+        "--set", "pilot", "--per-region", "2", "--regions", BENCH_REGIONS]
+    argv = ["label_windowed.py", *frame_set, "--out", args.out, "--resume"]
     if args.max_frames:
         argv += ["--max-frames", str(args.max_frames)]
     if cuda:

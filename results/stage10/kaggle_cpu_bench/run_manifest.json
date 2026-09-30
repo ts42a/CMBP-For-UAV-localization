@@ -1,0 +1,36 @@
+{
+  "started_at": "2026-09-29T22:02:56.454695+00:00",
+  "git_commit": "unknown",
+  "git_dirty_scripts_or_configs": true,
+  "config_path": "configs/matcher_stage4_frozen.yaml",
+  "config_sha256": "abfc07a4d6d3269ff40d20261ebfbfb0523b380943fd34ed71e3f43415a27f97",
+  "prereg_sha256": "90679f74810443717480cf9f82f706285358a66f037d9441b96163d05bdcfa94",
+  "splits_sha256": "b46407a738e649ed994c4fe6382110d065282f8ecc882ffddd4fad35875553b7",
+  "accept_rule": "patch_20",
+  "query_source": "real",
+  "args": {
+    "set": "pilot",
+    "out": "results/stage10/kaggle_bench",
+    "resume": true,
+    "radii": null,
+    "k": null,
+    "zero_offset": false,
+    "control_offset_m": null,
+    "n_frames": 5,
+    "regions": "01,02,03,04,05,06,08,09,10,11",
+    "per_region": 2,
+    "select_seed": 20260927,
+    "max_frames": null,
+    "matcher_config": null,
+    "accept_rule": null,
+    "query_source": "real"
+  },
+  "radii_m": [
+    100,
+    300,
+    1000
+  ],
+  "offsets_per_radius": 3,
+  "variant": "prior",
+  "n_frames": 20
+}

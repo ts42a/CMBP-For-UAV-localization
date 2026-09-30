@@ -149,15 +149,28 @@ def cmd_stage(args) -> None:
         if f.is_file() and not (d / f.name).exists():
             shutil.copy2(f, d / f.name)
     # kernel
-    KERNEL_DIR.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ROOT / "kaggle" / "stage10_kernel.py", KERNEL_DIR / "stage10_kernel.py")
-    km = {"id": f"{user}/{KERNEL_SLUG}", "title": KERNEL_SLUG, "code_file": "stage10_kernel.py",
+    km = stage_kernel(KERNEL_DIR, user, KERNEL_SLUG, args)
+    print(json.dumps({"staged": str(UPLOAD), "kernel": km, "bundle_commit": bm["commit"]}, indent=2))
+
+
+def stage_kernel(folder: Path, user: str, slug: str, args, job: list[str] | None = None) -> dict:
+    """Kernel folder: kaggle/stage10_kernel.py (with KERNEL_ARGS set to job, if given) + metadata."""
+    folder.mkdir(parents=True, exist_ok=True)
+    src = (ROOT / "kaggle" / "stage10_kernel.py").read_text(encoding="utf-8")
+    if job is not None:
+        line = "KERNEL_ARGS: list[str] = []"
+        if src.count(line) != 1:
+            raise SystemExit(f"kaggle/stage10_kernel.py must contain exactly one '{line}'")
+        src = src.replace(line, f"KERNEL_ARGS: list[str] = {json.dumps(job)}")
+    (folder / "stage10_kernel.py").write_text(src, encoding="utf-8")
+    km = {"id": f"{user}/{slug}", "title": slug, "code_file": "stage10_kernel.py",
           "language": "python", "kernel_type": "script", "is_private": True, "enable_gpu": True,
           "enable_tpu": False, "enable_internet": bool(args.internet),
+          "machine_shape": args.accelerator,  # enable_gpu alone is deprecated; this pins the hardware
           "dataset_sources": [f"{user}/{s}" for s in SLUGS.values()], "competition_sources": [],
           "kernel_sources": [], "model_sources": []}
-    (KERNEL_DIR / "kernel-metadata.json").write_text(json.dumps(km, indent=2), encoding="utf-8")
-    print(json.dumps({"staged": str(UPLOAD), "kernel": km, "bundle_commit": bm["commit"]}, indent=2))
+    (folder / "kernel-metadata.json").write_text(json.dumps(km, indent=2), encoding="utf-8")
+    return km
 
 
 def dataset_exists(user: str, slug: str) -> bool:
@@ -213,29 +226,53 @@ def wait_dataset(user: str, slug: str, timeout_min: float) -> str:
         time.sleep(30)
 
 
-def cmd_push(args) -> None:
-    if not (KERNEL_DIR / "kernel-metadata.json").exists():
-        raise SystemExit("kernel not staged; run: stage")
+def push_kernel(folder: Path, args) -> None:
+    if not (folder / "kernel-metadata.json").exists():
+        raise SystemExit(f"kernel not staged in {folder}")
+    km = json.loads((folder / "kernel-metadata.json").read_text(encoding="utf-8"))
+    user = km["id"].split("/")[0]
+    missing = [s for s in km["dataset_sources"] if not dataset_exists(user, s.split("/")[1])]
+    if missing:  # Kaggle would start the kernel without them and it would stop at discovery
+        raise SystemExit(f"input datasets not on Kaggle yet: {missing}; run: upload")
     extra = ["-t", str(args.kernel_timeout_s)] if args.kernel_timeout_s else []
-    kaggle("kernels", "push", "-p", str(KERNEL_DIR), "--accelerator", args.accelerator, *extra)
+    kaggle("kernels", "push", "-p", str(folder), "--accelerator", args.accelerator, *extra)
 
 
-def kernel_id() -> str:
-    return json.loads((KERNEL_DIR / "kernel-metadata.json").read_text(encoding="utf-8"))["id"]
+def cmd_push(args) -> None:
+    push_kernel(KERNEL_DIR, args)
+
+
+def kernel_id(folder: Path = KERNEL_DIR) -> str:
+    return json.loads((folder / "kernel-metadata.json").read_text(encoding="utf-8"))["id"]
+
+
+def kernel_status(kid: str) -> str:
+    """'running', 'queued', 'complete', 'error', 'cancel...' or 'unknown' (never pushed, or an API error)."""
+    out = kaggle("kernels", "status", kid, capture=True, check=False).strip().lower()
+    if "has status" not in out:  # a private kernel that was never pushed answers 403, not 404
+        return "unknown"
+    return out.rsplit("kernelworkerstatus.", 1)[-1].strip(' ".')
+
+
+def wait_kernel(kid: str, timeout_min: float) -> str:
+    t_end, misses, last = time.time() + timeout_min * 60, 0, None
+    while True:
+        st = kernel_status(kid)
+        if st != last:
+            print(f"{now()} {kid}: {st}", flush=True)
+            last = st
+        if st in ("complete", "error") or st.startswith("cancel"):
+            return st
+        misses = misses + 1 if st == "unknown" else 0
+        if misses >= 10:
+            raise SystemExit(f"{kid} not found for 10 min; did push succeed? run: push")
+        if time.time() > t_end:
+            raise SystemExit("timed out waiting; the kernel keeps running on Kaggle, rerun the same command")
+        time.sleep(60)
 
 
 def cmd_wait(args) -> str:
-    kid, t_end = kernel_id(), time.time() + args.timeout_min * 60
-    while True:
-        out = kaggle("kernels", "status", kid, capture=True, check=False).strip()
-        print(out, flush=True)
-        low = out.lower()
-        # 'has status "KernelWorkerStatus.RUNNING"'; anything without "has status" is a transient API error
-        if "has status" in low and any(s in low for s in ("complete", "error", "cancel")):
-            return out
-        if time.time() > t_end:
-            raise SystemExit("timed out waiting; the kernel keeps running on Kaggle, rerun: wait")
-        time.sleep(60)
+    return wait_kernel(kernel_id(), args.timeout_min)
 
 
 def cmd_fetch(args) -> None:
@@ -274,9 +311,165 @@ def compare_and_cost(args) -> None:
                            "--weekly-quota-h", str(quota)], cwd=ROOT)
 
 
+# ---- Stage 11: full-scale labels, one private GPU kernel per region --------------------------------
+
+LABELS = ROOT / "results" / "full" / "labels_v1"          # git-ignored; archived with archive_outputs.py
+LABEL_REGIONS = ["10", "05", "06", "11", "04", "03", "09", "01", "08", "02"]   # smallest first; 07 excluded (D2)
+PILOT = ROOT / "results" / "stage5" / "pilot" / "outcomes.csv"
+MANIFEST = ROOT / "datasets" / "manifests" / "manifest.csv"
+GPU_BENCH = ROOT / "results" / "stage10" / "kaggle_bench" / "outcomes.csv"
+LABEL_KEY = ("region", "filename", "variant", "radius_m", "offset_k")
+ATTEMPTS_PER_FRAME = 9   # 3 radii x 3 pre-registered offsets
+
+
+def label_dir(r: str) -> Path:
+    return BUILD / f"kernel_labels_{r}"
+
+
+def csv_rows(p: Path) -> list[dict]:
+    import csv
+    with p.open(encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def region_frames(r: str) -> set[str]:
+    return {m["filename"] for m in csv_rows(MANIFEST) if m["region_folder"] == r}
+
+
+def gpu_hours(r: str) -> float:
+    """Projected session hours for region r from the Stage 10 T4 benchmark (+ 0.1 h start-up)."""
+    s_per_frame = 19.0
+    if GPU_BENCH.is_file():
+        rows = csv_rows(GPU_BENCH)
+        frames = {x["filename"] for x in rows}
+        setup = {x["filename"]: float(x["frame_setup_s"]) for x in rows}
+        s_per_frame = (sum(float(x["runtime_s"]) for x in rows) + sum(setup.values())) / len(frames)
+    return len(region_frames(r)) * s_per_frame / 3600 + 0.1
+
+
+def check_labels(r: str, expect_commit: str) -> dict:
+    """Acceptance checks for one region's labels; writes <LABELS>/<r>/check.json."""
+    d = LABELS / r
+    rows = csv_rows(d / "outcomes.csv") if (d / "outcomes.csv").is_file() else []
+    env = json.loads((d / "env.json").read_text(encoding="utf-8")) if (d / "env.json").is_file() else {}
+    frames = region_frames(r)
+    keys = [tuple(x[k] for k in LABEL_KEY) for x in rows]
+    pilot = {tuple(x[k] for k in LABEL_KEY): x for x in csv_rows(PILOT)}
+    ref_sha = {x["config_sha256"] for x in pilot.values()}
+    both = [(x, pilot[k]) for x, k in zip(rows, keys) if k in pilot]
+    same = sum(x["outcome_primary"] == p["outcome_primary"] for x, p in both)
+    acc = [(x, p) for x, p in both if x["accepted"] == "1" and p["accepted"] == "1"]
+
+    def dist_m(x, p):
+        import math
+        dlat = (float(x["pred_lat"]) - float(p["pred_lat"])) * 110_574.0
+        dlon = (float(x["pred_lon"]) - float(p["pred_lon"])) * 111_320.0 * math.cos(math.radians(float(p["pred_lat"])))
+        return math.hypot(dlat, dlon)
+
+    within = sum(dist_m(x, p) <= 5.0 for x, p in acc)
+    rec = {
+        "region": r, "checked_utc": now(), "rows": len(rows), "expected_rows": len(frames) * ATTEMPTS_PER_FRAME,
+        "frames": len({x["filename"] for x in rows}), "expected_frames": len(frames),
+        "complete": len(rows) == len(frames) * ATTEMPTS_PER_FRAME and {x["filename"] for x in rows} == frames,
+        "no_duplicate_keys": len(keys) == len(set(keys)),
+        "config_sha256": sorted({x["config_sha256"] for x in rows}),
+        "config_sha256_matches_pilot": {x["config_sha256"] for x in rows} == ref_sha,
+        "gpu": env.get("gpu"), "cuda_available": env.get("cuda_available"),
+        "bundle_commit": env.get("bundle_commit"), "bundle_commit_expected": expect_commit,
+        "pilot_overlap_attempts": len(both), "pilot_overlap_identical_outcome": same,
+        "pilot_overlap_both_accepted": len(acc), "pilot_overlap_within_5m": within,
+        "label_hours": round(sum(float(x["runtime_s"]) for x in rows) / 3600, 2),
+    }
+    # Pilot frames reappear in the full table: Stage 10 agreement criteria applied to them.
+    pilot_ok = (not both) or (same >= 0.97 * len(both) and (not acc or within >= 0.95 * len(acc)))
+    rec["pass"] = bool(rec["complete"] and rec["no_duplicate_keys"] and rec["config_sha256_matches_pilot"]
+                       and rec["cuda_available"] and rec["bundle_commit"] == expect_commit and pilot_ok)
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "check.json").write_text(json.dumps(rec, indent=2), encoding="utf-8")
+    return rec
+
+
+def fetch_labels(r: str, kid: str) -> None:
+    dl = BUILD / "output" / f"labels_{r}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    dl.mkdir(parents=True, exist_ok=True)
+    kaggle("kernels", "output", kid, "-p", str(dl))
+    bundle = next(dl.rglob("cmbl_results.zip"), None)
+    if bundle is None:
+        disc = next(dl.rglob("kernel_discovery.json"), None)
+        raise SystemExit(f"region {r}: no cmbl_results.zip in {dl}"
+                         + (f"; discovery: {disc.read_text(encoding='utf-8')}" if disc else ""))
+    if (LABELS / r).exists():
+        shutil.rmtree(LABELS / r)
+    with zipfile.ZipFile(bundle) as z:
+        z.extractall(ROOT)
+
+
+def label_quota_left() -> float | None:
+    try:
+        gpu = api().quota_view().gpu_quota
+        return (gpu.total_time_allowed - gpu.time_used).total_seconds() / 3600
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def cmd_labels(args) -> None:
+    """Stage 11: for each region, stage -> push -> wait -> fetch -> check. Rerunnable: a region that
+    passed is skipped, one still running on Kaggle is waited for, not pushed again."""
+    user = args.user or username()
+    commit = json.loads((BUILD / "bundle_manifest.json").read_text(encoding="utf-8"))["commit"]
+    regions = args.regions.split(",") if args.regions else LABEL_REGIONS
+    for r in regions:
+        if r not in LABEL_REGIONS:
+            raise SystemExit(f"region {r} is not labelled (07 is excluded by D2)")
+        chk = LABELS / r / "check.json"
+        if chk.is_file() and json.loads(chk.read_text(encoding="utf-8"))["pass"] and not args.repush:
+            print(f"region {r}: done (check passed)", flush=True)
+            continue
+        folder = label_dir(r)
+        job = ["--label-args", f"--set full --regions {r}", "--out", f"results/full/labels_v1/{r}", "--skip-embed-bench"]
+        stage_kernel(folder, user, f"cmbl-s11-labels-{r}", args, job)
+        kid = kernel_id(folder)
+        st = kernel_status(kid)
+        if st in ("running", "queued") and not args.repush:
+            print(f"region {r}: already {st} on Kaggle; waiting", flush=True)
+        elif st == "complete" and not args.repush:
+            print(f"region {r}: finished on Kaggle; fetching", flush=True)
+        else:
+            need, left = gpu_hours(r), label_quota_left()
+            if left is not None and left < need:
+                raise SystemExit(f"region {r} needs ~{need:.1f} GPU h but {left:.1f} h of the weekly quota are left; "
+                                 "rerun after the quota refresh (see: check)")
+            print(f"region {r}: pushing ({len(region_frames(r))} frames, ~{need:.1f} GPU h; quota left "
+                  f"{'?' if left is None else f'{left:.1f}'} h)", flush=True)
+            push_kernel(folder, args)
+            st = "pushed"
+        if args.no_wait and st != "complete":
+            continue
+        st = wait_kernel(kid, args.timeout_min)
+        fetch_labels(r, kid)
+        rec = check_labels(r, commit)
+        print(json.dumps(rec, indent=2), flush=True)
+        if not rec["pass"]:
+            raise SystemExit(f"region {r}: check FAILED (kernel status {st}); see {LABELS / r / 'check.json'}")
+    cmd_labels_status(args)
+
+
+def cmd_labels_status(args) -> None:
+    print(f"{'region':>6} {'frames':>6} {'rows':>6} {'expected':>8}  check", flush=True)
+    for r in sorted(LABEL_REGIONS):
+        chk = LABELS / r / "check.json"
+        rec = json.loads(chk.read_text(encoding="utf-8")) if chk.is_file() else {}
+        print(f"{r:>6} {len(region_frames(r)):>6} {rec.get('rows', 0):>6} {len(region_frames(r)) * ATTEMPTS_PER_FRAME:>8}  "
+              f"{'PASS' if rec.get('pass') else ('FAIL' if rec else '-')}", flush=True)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=["check", "stage", "upload", "push", "wait", "fetch", "compare", "all"])
+    ap.add_argument("step", choices=["check", "stage", "upload", "push", "wait", "fetch", "compare", "all",
+                                     "labels", "labels-status"])
+    ap.add_argument("--regions", default=None, help="labels: comma list (default: all ten, smallest first)")
+    ap.add_argument("--no-wait", action="store_true", help="labels: push and return (fetch later by rerunning)")
+    ap.add_argument("--repush", action="store_true", help="labels: push again even if passed or running")
     ap.add_argument("--user", default=None, help="Kaggle username (default: from the token)")
     ap.add_argument("--only", default=None, help="upload: comma list of code,cache,data")
     ap.add_argument("--note", default=None, help="upload: version note for an existing dataset")
@@ -288,7 +481,8 @@ def main() -> int:
     ap.add_argument("--force", action="store_true", help="fetch: replace an existing results/stage10/kaggle_bench")
     args = ap.parse_args()
     steps = {"check": cmd_check, "stage": cmd_stage, "upload": cmd_upload, "push": cmd_push,
-             "wait": cmd_wait, "fetch": cmd_fetch, "compare": compare_and_cost}
+             "wait": cmd_wait, "fetch": cmd_fetch, "compare": compare_and_cost,
+             "labels": cmd_labels, "labels-status": cmd_labels_status}
     if args.step == "all":
         for s in ("check", "stage", "upload", "push", "wait", "fetch"):
             print(f"\n=== {s} ===", flush=True)

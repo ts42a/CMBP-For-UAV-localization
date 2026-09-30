@@ -9,6 +9,7 @@ Examples:
   py -3 scripts/label_windowed.py --set tune --out results/stage4/tune
   py -3 scripts/label_windowed.py --set stage4 --zero-offset --radii 100 --out results/stage4/zero
   py -3 scripts/label_windowed.py --set pilot --per-region 10 --out results/stage5/pilot --resume
+  py -3 scripts/label_windowed.py --set full --regions 02 --out results/full/labels/02 --resume
 """
 from __future__ import annotations
 
@@ -130,7 +131,7 @@ def pick_frames(args) -> list[dict]:
     frames = []
     for r in regions:
         m = load_manifest_region(r)
-        frames += select_queries(m, min(args.per_region, len(m)), seed=args.select_seed)
+        frames += m if args.set == "full" else select_queries(m, min(args.per_region, len(m)), seed=args.select_seed)
     return frames
 
 
@@ -143,7 +144,8 @@ def done_keys(path: Path) -> set[tuple]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--set", choices=["tune", "stage4", "pilot"], required=True)
+    ap.add_argument("--set", choices=["tune", "stage4", "pilot", "full"], required=True,
+                    help="full: every manifest frame of --regions (Stage 11); pilot: --per-region frames each")
     ap.add_argument("--out", required=True)
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--radii", default=None, help="comma list; default = pre-registered radii")

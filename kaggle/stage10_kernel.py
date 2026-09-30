@@ -13,7 +13,8 @@ the three inputs by content instead of by path:
 Archives are extracted to a scratch folder only when no extracted copy exists. The code is
 copied to /kaggle/working/CMBL (the runner writes its results inside the code root), the
 frozen runner (kaggle/stage10_runner.py) is run unchanged, and the result folder is zipped to
-/kaggle/working/stage10_kaggle_bench.zip for download.
+/kaggle/working/stage10_kaggle_bench.zip for download. A Stage 11 job staged by
+scripts/protocol/kaggle_stage10.py sets KERNEL_ARGS (frame set and --out) and writes cmbl_results.zip.
 
 Local test: set CMBL_KAGGLE_INPUT / CMBL_KAGGLE_WORK / CMBL_KAGGLE_SCRATCH and pass runner
 arguments after "--", e.g. "-- --device cpu --max-frames 2".
@@ -38,6 +39,9 @@ REGIONS = [f"{i:02d}" for i in range(1, 12)]
 REQUIRED_MODULES = ["torch", "torchvision", "numpy", "cv2", "yaml", "pyproj", "tifffile", "PIL"]
 OUT_REL = "results/stage10/kaggle_bench"
 MAX_DEPTH = 6
+# Runner arguments for a staged job (a script kernel gets no argv); kaggle_stage10.py rewrites this
+# line when it stages a Stage 11 region, e.g. ["--label-args", "--set full --regions 02", "--out", ...].
+KERNEL_ARGS: list[str] = []
 
 
 def walk(root: Path, max_depth: int = MAX_DEPTH):
@@ -118,7 +122,8 @@ def find_archives(pattern_names: set[str]) -> list[Path]:
 
 
 def main() -> int:
-    runner_extra = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    runner_extra = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else list(KERNEL_ARGS)
+    out_rel = runner_extra[runner_extra.index("--out") + 1] if "--out" in runner_extra else OUT_REL
     t_start = time.perf_counter()
     disc: dict = {"input": str(INPUT), "work": str(WORK), "scratch": str(SCRATCH), "extracted": []}
     WORK.mkdir(parents=True, exist_ok=True)
@@ -132,6 +137,13 @@ def main() -> int:
         except Exception as e:  # noqa: BLE001
             missing.append(f"{m}: {e}")
     disc["missing_modules"] = missing
+    # Kaggle silently runs a GPU-requested kernel on CPU (torch "+cpu" image) when the account
+    # cannot get a GPU, e.g. without phone verification; that would mislabel every timing.
+    cuda = None
+    if not any(m.startswith("torch:") for m in missing):
+        import torch
+        cuda = torch.cuda.is_available()
+    disc["cuda_available"] = cuda
 
     t0 = time.perf_counter()
     code = find_code([INPUT])
@@ -169,6 +181,9 @@ def main() -> int:
     problems = []
     if missing:
         problems.append(f"missing Python modules (internet is off): {missing}")
+    if cuda is False and "cpu" not in runner_extra:
+        problems.append("no GPU attached (torch.cuda.is_available() is False): phone-verify the Kaggle account "
+                        "and push with an accelerator, or pass '-- --device cpu' for a deliberate CPU run")
     if code is None:
         problems.append("code input not found (kaggle/stage10_runner.py)")
     else:
@@ -208,14 +223,15 @@ def main() -> int:
     if not dst.exists():
         shutil.copytree(code, dst, ignore=shutil.ignore_patterns("__pycache__"))
     cmd = [sys.executable, str(dst / "kaggle" / "stage10_runner.py"), "--code-root", str(dst),
-           "--data-root", str(view), "--emb-root", str(emb), "--torch-home", str(th_view), "--out", OUT_REL,
+           "--data-root", str(view), "--emb-root", str(emb), "--torch-home", str(th_view), "--out", out_rel,
            *runner_extra]
     print("running: " + " ".join(cmd), flush=True)
     rc = subprocess.call(cmd)
 
-    res = dst / OUT_REL
+    res = dst / out_rel
+    res.mkdir(parents=True, exist_ok=True)
     shutil.copy2(WORK / "kernel_discovery.json", res / "kernel_discovery.json")
-    bundle = WORK / "stage10_kaggle_bench.zip"
+    bundle = WORK / ("stage10_kaggle_bench.zip" if out_rel == OUT_REL else "cmbl_results.zip")
     with zipfile.ZipFile(bundle, "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(res.rglob("*")):
             if f.is_file():

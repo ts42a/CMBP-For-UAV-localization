@@ -181,7 +181,7 @@ deviations:
       byte-for-byte with the rule absent, and tested on the pilot with a partial exclusion list.
   - id: D6
     date: '2026-09-29'
-    status: proposed_pending_approval   # not in force until the author approves; then configs/predictor_protocol_v5.yaml status -> frozen_before_full_labels
+    status: approved   # by the author on 2026-09-30, before any full-scale label exists; configs/predictor_protocol_v5.yaml frozen_before_full_labels
     type: diagnostics and sensitivity analyses added to the predictor protocol, before full-scale labels (Stages 6-8)
     change: >
       configs/predictor_protocol_v5.yaml supersedes v4. Adds (a) diagnostic models M4_flight_diag

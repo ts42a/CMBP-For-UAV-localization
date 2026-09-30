@@ -1,0 +1,47 @@
+schema_version: stage11_labels_v1
+status: frozen_before_full_labels
+date: '2026-09-30'
+purpose: >
+  Stage 11, real labels. Run the frozen localizer on every frame of the ten study regions and
+  record the outcomes that Stages 6-9 use. Fixed before any full-scale label exists.
+
+preconditions:  # all met on 2026-09-30
+  - Stage 10 GO (reports/stage10_decision.md): Kaggle T4 labels identical to the PC labels on 180 attempts
+  - predictor protocol v5 frozen (deviation D6 approved); no predictor is fitted during Stage 11
+  - scripts/protocol/verify.py all checks PASS at the tagged commit
+
+code:
+  tag: stage11-labels-v1          # git tag on the commit packaged as the cmbl-code dataset
+  localizer: configs/matcher_stage4_frozen.yaml via configs/preregistration_v1.yaml (unchanged since D1)
+  accept_rule: preregistration accept_rule.selected (patch_20), tolerances unchanged
+  numerics: Kaggle Tesla T4, float32, TF32 off for matmul and cuDNN, cudnn.benchmark off (kaggle/stage10_runner.py)
+
+label_set:
+  command: scripts/label_windowed.py --set full --regions <RR> --out results/full/labels_v1/<RR> --resume
+  frames: 6744      # every manifest frame of regions 01-06 and 08-11; region 07 excluded (D2)
+  attempts_per_frame: 9   # pre-registered radii 100/300/1000 m x 3 seeded offsets
+  attempts: 60696
+  pilot_frames: >
+    The 110 Stage 5 pilot frames are relabelled with everything else (same seeded offsets). They stay
+    out of every headline metric (deviation D5).
+
+execution:
+  unit: one private GPU kernel per region, cmbl-s11-labels-<RR>, internet off
+  order: [10, 05, 06, 11, 04, 03, 09, 01, 08, 02]   # smallest first; region 10 is the end-to-end check
+  projected_hours: 36.2   # from the Stage 10 T4 frame time; longest region (02) 5.7 h, below the 12 h session cap
+  driver: py -3 scripts/protocol/kaggle_stage10.py labels [--regions RR,...]
+  quota: a region is pushed only if the remaining weekly GPU quota covers its projection
+  on_session_failure: rerun the region from the start (the labeller is deterministic and resumable)
+
+acceptance_per_region:  # scripts/protocol/kaggle_stage10.py check_labels -> results/full/labels_v1/<RR>/check.json
+  - rows == frames x 9, every manifest frame present, no duplicate keys
+  - one config sha256, equal to the Stage 5 pilot rows' config sha256
+  - ran with CUDA, from the bundle commit recorded in build/kaggle/bundle_manifest.json
+  - pilot frames present in the region reproduce the Stage 5 rows under the Stage 10 agreement criteria
+    (>= 97 % identical outcomes, >= 95 % of jointly accepted fixes within 5 m)
+  on_fail: stop; nothing is re-tuned. Diagnose, fix only non-localizer causes, rerun the region, log it here.
+
+outputs:
+  folder: results/full/labels_v1/<RR>/ (git-ignored)
+  archive: scripts/protocol/archive_outputs.py pack results/full/labels_v1 --name labels_v1, after all ten pass
+  rule: nothing is re-tuned once any full-scale label exists

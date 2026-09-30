@@ -1,11 +1,11 @@
 schema_version: predictor_protocol_v5
-status: proposed_pending_approval   # becomes frozen_before_full_labels once approved
+status: frozen_before_full_labels   # approved by the author 2026-09-30 (deviation D6)
 date: '2026-09-29'
 supersedes: configs/predictor_protocol_v4.yaml
 purpose: >
   Adds diagnostics and sensitivity analyses only. Registered models (M0-M3), features,
   calibration, controls, splits, labels, the headline (v4: pilot frames excluded) and H2/H3 are
-  unchanged. Logged as deviation D6 in configs/preregistration_v1.yaml once approved.
+  unchanged. Logged as deviation D6 in configs/preregistration_v1.yaml. This is the protocol for the full-scale run.
 reason: >
   Project evaluation 2026-09-29. (1) 40% of pilot label variance lies between regions, which a
   map-only predictor cannot see; exploratory, post hoc: region success rises with height above
