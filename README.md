@@ -25,10 +25,11 @@ Pilot scale only; no full-scale result exists yet.
 | 1–2 Literature gap, dataset and ground-truth audit | done (`reports/gap_decision.md`, `reports/full_dataset_audit.md`) |
 | 3–4 Splits, pre-registration, localizer freeze | done (`configs/splits_v1.json`, `configs/preregistration_v1.yaml`, deviation D1) |
 | 5 Multi-region pilot labels (110 frames × 9 attempts) | done, gate GO (`reports/stage5_pilot_decision.md`) |
-| 6–8 Predictors and calibration, pilot function check | done (`reports/stage6_8_pilot_v3_summary.md`); protocol v4 in force, v5 proposed |
-| 10 Kaggle GPU benchmark | kit ready and tested locally (`kaggle/README.md`); GPU run pending |
+| 6–8 Predictors and calibration, pilot function check | done (`reports/stage6_8_pilot_v3_summary.md`); protocol v5 frozen (D6 approved 2026-09-30) |
+| 10 Kaggle GPU benchmark | done, GO: T4 labels identical to the PC on 180 attempts (`reports/stage10_decision.md`) |
 | 9 Route replay, H1 synthetic labels | protocols proposed (`configs/stage9_protocol_v1.yaml`, `configs/h1_protocol_v1.yaml`) |
-| 11–12 Full-scale runs, write-up | not started |
+| 11 Full-scale real labels (6,744 frames × 9 attempts) | running on Kaggle, one region per kernel (`configs/stage11_labels_v1.yaml`, tag `stage11-labels-v1`) |
+| 12 Analysis, write-up | not started |
 
 ## Repository layout
 
@@ -112,6 +113,21 @@ protocol-v4/v5 rules, and a 2-frame golden reproduction of the localizer labels.
 freeze or full run. Checks whose inputs are local-only (the dataset and the metadata derived from it)
 report SKIP with the missing files listed; on a fresh public clone only `env` can run until you
 have the dataset and have rebuilt the pilot outputs.
+
+### A second machine (e.g. an Apple Silicon Mac)
+
+Extra CPU work (for example Stage 9 replay) can run on another machine if it reproduces the labels:
+
+1. Same Python 3.14 and pins: `.venv/bin/python -m pip install -r requirements-localization.txt`.
+   Apple Silicon only; PyTorch publishes no Intel-Mac builds of the pinned version.
+2. Copy from the main machine (none of it is in git): `datasets/raw/UAV_VisLoc_dataset/` (24 GB),
+   `datasets/manifests/*.csv` (copy, do not rebuild: `manifest.csv` must keep the sha256 recorded in
+   `configs/splits_v1.json`; its absolute image paths fall back to the local dataset layout),
+   `datasets/cache/embeddings/`, and the reference outputs `results/stage5/pilot/` and
+   `results/stage6_7/pilot/`. The DINOv2 weights download on first use.
+3. Run the full `verify.py`. Use the machine only if all 7 checks pass: `labels` reproduces pilot
+   localizer attempts exactly. It runs on the CPU (no CUDA); Apple's GPU (MPS) is deliberately not
+   used, since it would need its own agreement check, as the Kaggle GPU had in Stage 10.
 
 ## Main commands
 
