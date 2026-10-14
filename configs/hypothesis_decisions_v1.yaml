@@ -1,0 +1,41 @@
+schema_version: hypothesis_decisions_v1
+declared_date: '2026-10-14'
+status: frozen_before_further_full_scale_analysis
+chronology: >
+  Explicit numeric decision rules added after Stage 11 generation began and after Regions 05
+  and 10 had been fetched. Pilot evidence and historical acceptance summaries were already
+  available. This supplement is not a claim of preregistration before data generation or
+  proof that no person previously inspected full-scale outcomes. No full-scale predictor
+  evaluation was used to select these rules in this remediation session. Report timing plainly.
+scope:
+  predictor_protocol: configs/predictor_protocol_v5.yaml
+  evaluation: headline test rows exclude Stage 5 pilot frames; region 07 excluded
+  unit: held-out region group; same eligible groups in both members of every contrast
+  development_group: report both all eligible groups and results excluding G2; primary uses all
+  uncertainty: paired group bootstrap; 10000 draws; seed 20261014; percentile 95 percent interval
+  minimum_eligible_groups: 5
+  missing_or_single_class: omit undefined AUROC groups in both paired methods; report count
+  decision_if_insufficient: inconclusive
+  multiplicity: three separate prespecified hypotheses; intervals are not familywise adjusted
+H1:
+  statement: Real-outcome supervision transfers better than matched synthetic-outcome supervision.
+  predictor: M2_dino; raw probabilities; identical folds, hyperparameters and training sample counts
+  contrast: macro AUROC on real held-out labels, real-supervised minus synthetic-supervised
+  pass: difference >= 0.02 and paired 95 percent CI lower bound > 0
+  fail: either numeric condition fails with sufficient valid groups
+H2:
+  statement: Learned map embeddings plus distinctiveness outperform the handcrafted texture baseline.
+  contrast: macro AUROC, M3_dino_distinct raw minus M1_texture raw
+  pass: difference >= 0.02 and paired 95 percent CI lower bound > 0
+  fail: either numeric condition fails with sufficient valid groups
+  secondary: M2 minus M1 and M3 minus M2; descriptive, no additional success criterion
+H3:
+  statement: Source-fitted calibration improves average held-out probability quality for M2.
+  contrast: M2_dino fe_platt minus raw, macro Brier score and macro log loss
+  pass: Brier difference <= -0.005 and log-loss difference <= -0.01 and both paired 95 percent CI upper bounds < 0
+  fail: any numeric condition fails with sufficient valid groups
+  secondary: M0 comparison, ECE and other predictors; descriptive
+rationale: >
+  Effect floors are explicit prospective practical thresholds, not estimates of expected
+  performance. They prevent treating arbitrarily small numerical changes as support.
+  Failure to pass means these decision criteria were not met, not proof of equivalence.
