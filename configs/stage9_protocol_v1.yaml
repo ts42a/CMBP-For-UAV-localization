@@ -1,5 +1,9 @@
 schema_version: stage9_protocol_v1
-status: proposed_pending_approval   # becomes frozen_before_replay once approved; decisions marked DECIDE need the author
+status: frozen_before_replay
+approval_basis: author instruction on 2026-10-14 to resolve the listed issues and implement; recommended C selected with mandatory live fallback
+execution_status: blocked_pending_live_fidelity_and_launch_gates
+calibration: configs/drift_calibration.json
+seed_schedule: {route: [91001, 91002, 91003, 91004, 91005], fidelity: 92001, bootstrap: 93001, stress: 94001}
 date: '2026-09-29'
 purpose: >
   RQ3 / H4: does probability-aware scheduling of localization attempts maintain localization
@@ -28,8 +32,9 @@ motion_and_drift:  # odometry = truth displacement corrupted; ground truth never
     For each level, sd_s = sd_b(rad) = rate / 2 and sd_w is set so that the AR(1) term contributes
     rate / 2 of the error growth over 1 km; sd_h = 0.5 deg at every level except L0. Calibrated once by
     simulation on synthetic straight routes (no dataset route) before any replay; values written to
-    results/stage9/drift_calibration.json and frozen.
-  seeds: 5 per route and level; identical across policies (paired design)
+    configs/drift_calibration.json and frozen. AR(1) contribution is radial RMS over ten 100 m steps;
+    the calibration does not claim the total drift equals the nominal rate.
+  seeds: [91001, 91002, 91003, 91004, 91005]  # identical across policies
 
 estimator:
   update: x_hat_t = x_hat_{t-1} + d_odo_t
@@ -41,7 +46,10 @@ estimator:
     otherwise it is logged as gated (not used). On use: x_hat_t = fix, sigma_t = sigma_fix.
   truth_access: never; the policy and estimator receive only x_hat, sigma, predictor outputs and accepted/rejected + fix position
 
-outcome_source:  # DECIDE (cost lever): what the localizer returns for an attempt at (frame, x_hat, R)
+outcome_source:
+  selected: C_hybrid
+  fallback: A_live
+  activation: C_hybrid disabled until a recorded 2000-attempt live fidelity check passes
   recommended: C_hybrid
   options:
     A_live: run the frozen localizer for every replay attempt (projected ~622 CPU-h under the placeholder design; reports/stage10_cost_sheet_pc_cpu.md)

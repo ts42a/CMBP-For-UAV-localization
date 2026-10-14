@@ -1,0 +1,57 @@
+{
+  "schema_version": "drift_calibration_v1",
+  "seed": 20261014,
+  "simulation_routes": 100000,
+  "synthetic_step_m": 100,
+  "synthetic_steps": 10,
+  "phi": 0.95,
+  "definition": "AR(1) radial RMS endpoint contribution over ten 100 m steps; not total drift or a measured sensor model",
+  "route_seeds": [
+    91001,
+    91002,
+    91003,
+    91004,
+    91005
+  ],
+  "fidelity_seed": 92001,
+  "bootstrap_seed": 93001,
+  "stress_seed": 94001,
+  "levels": {
+    "L0": {
+      "rate": 0,
+      "sd_s": 0.0,
+      "sd_b_rad": 0.0,
+      "sd_h_rad": 0,
+      "sd_w_m": 0.0,
+      "target_ar1_rms_1km_m": 0.0,
+      "simulated_ar1_rms_1km_m": 0.0
+    },
+    "L1": {
+      "rate": 0.02,
+      "sd_s": 0.01,
+      "sd_b_rad": 0.01,
+      "sd_h_rad": 0.008726646259971648,
+      "sd_w_m": 0.4255908956652782,
+      "target_ar1_rms_1km_m": 10.0,
+      "simulated_ar1_rms_1km_m": 10.007203435485673
+    },
+    "L2": {
+      "rate": 0.05,
+      "sd_s": 0.025,
+      "sd_b_rad": 0.025,
+      "sd_h_rad": 0.008726646259971648,
+      "sd_w_m": 1.0639772391631954,
+      "target_ar1_rms_1km_m": 25.0,
+      "simulated_ar1_rms_1km_m": 25.01800858871418
+    },
+    "L3": {
+      "rate": 0.1,
+      "sd_s": 0.05,
+      "sd_b_rad": 0.05,
+      "sd_h_rad": 0.008726646259971648,
+      "sd_w_m": 2.127954478326391,
+      "target_ar1_rms_1km_m": 50.0,
+      "simulated_ar1_rms_1km_m": 50.03601717742836
+    }
+  }
+}
