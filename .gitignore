@@ -108,3 +108,7 @@ figures/region03_footprints_overview.png
 
 # Kaggle kernel discovery: lists the private /kaggle/input paths, which carry the account name
 results/stage10/**/kernel_discovery.json
+
+# Local/full launcher runs contain frame positions, live replay states and private data.
+results/local/
+results/full/run_*/

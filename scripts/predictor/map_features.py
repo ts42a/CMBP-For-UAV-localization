@@ -74,6 +74,42 @@ def dist_m(idx: RegionIndex, lat0: float, lon0: float) -> np.ndarray:
     return np.hypot(dx, dy)
 
 
+
+class MapFeatureService:
+    """Map-only features at arbitrary estimated centres. Bounded per-region texture cache."""
+    def __init__(self,idx,extent_add=450,exclusion_m=400,cache_limit=2048):
+        from collections import OrderedDict
+        self.idx=idx;self.extent_add=extent_add;self.exclusion_m=exclusion_m
+        self.texture_cache=OrderedDict();self.cache_limit=cache_limit
+
+    def texture(self,i):
+        if i not in self.texture_cache:
+            self.texture_cache[i]=tile_texture(read_tile_rgb_region(self.idx.rasters,self.idx.tiles[i]))
+            if len(self.texture_cache)>self.cache_limit:self.texture_cache.popitem(last=False)
+        else:self.texture_cache.move_to_end(i)
+        return self.texture_cache[i]
+
+    def extract(self,lat,lon,radius):
+        if not np.isfinite([lat,lon,radius]).all() or radius<=0 or abs(lat)>90 or abs(lon)>180:
+            raise ValueError('invalid feature query centre/radius')
+        idx=self.idx;embs=idx.embs
+        win=idx.window(lat,lon,radius);near=int(np.argmin(dist_m(idx,lat,lon)))
+        members=list(win) if len(win) else [near]
+        row={'log_radius':float(np.log(radius)),'n_window_tiles':len(win)}
+        near_t=self.texture(near);win_t=[self.texture(int(i)) for i in members]
+        for k in TEX:
+            row[f'tex_near_{k}']=near_t[k]
+            row[f'tex_win_{k}']=float(np.mean([t[k] for t in win_t]))
+        ext=idx.window(lat,lon,radius+self.extent_add)
+        ref_d=dist_m(idx,idx.lat[near],idx.lon[near])
+        comp=[int(i) for i in ext if ref_d[i]>self.exclusion_m]
+        if comp:
+            cos=np.sort(embs[comp]@embs[near])[::-1]
+            row.update(distinct_max=float(1-cos[0]),distinct_top5=float(1-cos[:5].mean()),no_competitor=0,n_competitors=len(comp))
+        else:row.update(distinct_max=1.,distinct_top5=1.,no_competitor=1,n_competitors=0)
+        return row,embs[near],embs[members].mean(axis=0)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--outcomes", default="results/stage5/pilot/outcomes.csv")
@@ -107,44 +143,16 @@ def main() -> int:
         if len(embs) != len(tiles):
             raise RuntimeError(f"region {region}: {len(embs)} embeddings != {len(tiles)} tiles")
         idx = RegionIndex(tiles, rasters, embs)
-        tex_cache: dict[int, dict] = {}
-
-        def tex(i: int) -> dict:
-            if i not in tex_cache:
-                tex_cache[i] = tile_texture(read_tile_rgb_region(rasters, tiles[i]))
-            return tex_cache[i]
-
+        service = MapFeatureService(idx, ext_add, excl_m)
         for r in (r for r in rows if r["region"] == region):
-            lat0, lon0, rad = float(r["center_lat"]), float(r["center_lon"]), float(r["radius_m"])
-            win = idx.window(lat0, lon0, rad)
-            if len(win) != int(r["n_window_tiles"]):
-                raise RuntimeError(f"{r['filename']} R={rad}: window {len(win)} != localizer {r['n_window_tiles']}")
-            near = int(np.argmin(dist_m(idx, lat0, lon0)))
-            members = list(win) if len(win) else [near]
-
-            row = {k: r[k] for k in KEEP}
-            row["label"] = int(r["outcome_primary"] == proto["label"]["positive"].split("==")[1].strip())
-            row["log_radius"] = float(np.log(rad))
-            row["n_window_tiles"] = len(win)
-            near_t = tex(near)
-            win_t = [tex(int(i)) for i in members]
-            for k in TEX:
-                row[f"tex_near_{k}"] = near_t[k]
-                row[f"tex_win_{k}"] = float(np.mean([t[k] for t in win_t]))
-
-            ext = idx.window(lat0, lon0, rad + ext_add)
-            ref_d = dist_m(idx, idx.lat[near], idx.lon[near])
-            comp = [int(i) for i in ext if ref_d[i] > excl_m]
-            if comp:
-                cos = np.sort(embs[comp] @ embs[near])[::-1]
-                row.update({"distinct_max": float(1 - cos[0]), "distinct_top5": float(1 - cos[:5].mean()),
-                            "no_competitor": 0, "n_competitors": len(comp)})
-            else:
-                row.update({"distinct_max": 1.0, "distinct_top5": 1.0, "no_competitor": 1, "n_competitors": 0})
-            out_rows.append(row)
-            emb_near.append(embs[near])
-            emb_win.append(embs[members].mean(axis=0))
-        print(f"region {region}: {sum(r['region'] == region for r in out_rows)} rows, {len(tex_cache)} tiles textured", flush=True)
+            features, near, window = service.extract(float(r["center_lat"]),float(r["center_lon"]),float(r["radius_m"]))
+            if features['n_window_tiles'] != int(r['n_window_tiles']):
+                raise RuntimeError('feature/localizer window mismatch')
+            row={k:r[k] for k in KEEP}
+            row['label']=int(r['outcome_primary']==proto['label']['positive'].split('==')[1].strip())
+            row.update(features)
+            out_rows.append(row);emb_near.append(near);emb_win.append(window)
+        print(f"region {region}: {sum(r['region'] == region for r in out_rows)} rows, {len(service.texture_cache)} tiles textured",flush=True)
 
     out_dir = ROOT / args.out
     out_dir.mkdir(parents=True, exist_ok=True)

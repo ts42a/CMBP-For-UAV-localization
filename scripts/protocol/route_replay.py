@@ -39,14 +39,14 @@ def odometry(truth, params, seed, phi=.95):
 
 
 def replay(frame_ids, truth, params, seed, policy, predictor, localizer,
-           budget=.1, threshold=.5, initial_fix=None, exact_attempts=None, stress_frames=()):
+           budget=.1, threshold=.5, initial_fix=None, exact_attempts=None, stress_frames=(), oracle=None, attempt_cap=None):
     """Run one policy. Comparators may be rerun with exact_attempts=realized count.
 
     Initialization is an externally supplied known fix; default is the simulated
     starting GNSS fix. Only odometry and accepted measurements update the state.
-    P6 oracle is intentionally separate from this deployable policy interface.
+    P6 oracle requires its own explicitly privileged callback; ordinary policies cannot access it.
     """
-    if policy not in ('P0_equal','P1_random','P2_texture','P3_uncalibrated','P4_calibrated','P5_untuned_product'):
+    if policy not in ('P0_equal','P1_random','P2_texture','P3_uncalibrated','P4_calibrated','P5_untuned_product','P6_oracle'):
         raise ValueError('unknown deployable policy')
     if not 0<=budget<=1 or not 0<=threshold<=1:
         raise ValueError('budget and threshold must be in [0,1]')
@@ -59,8 +59,12 @@ def replay(frame_ids, truth, params, seed, policy, predictor, localizer,
         raise ValueError('invalid attempt budget')
     if exact_attempts is not None and policy not in ('P0_equal','P1_random'):
         raise ValueError('exact budget reruns apply to comparator policies')
+    if attempt_cap is not None and (type(attempt_cap) is not int or not 0<=attempt_cap<=n):
+        raise ValueError('invalid attempt cap')
     rng=np.random.default_rng(np.random.SeedSequence([seed,1]))
-    schedule=set(np.linspace(0,n-1,target).round().astype(int)) if policy=='P0_equal' else set(rng.choice(n,target,replace=False))
+    if policy=='P0_equal':
+        schedule=(set(range(0,n,max(1,round(1/budget)))) if budget>0 else set()) if exact_attempts is None else set(np.linspace(0,n-1,target).round().astype(int))
+    else:schedule=set(rng.choice(n,target,replace=False))
     estimate=np.array(truth[0] if initial_fix is None else initial_fix,dtype=float)
     distance=0.;product=1.;records=[];stress=set(stress_frames)
     for t,frame in enumerate(frame_ids):
@@ -70,19 +74,25 @@ def replay(frame_ids, truth, params, seed, policy, predictor, localizer,
         probabilities=predictor(frame,tuple(estimate),radius)
         if set(probabilities)!= {'texture','raw','cal'} or any(not np.isfinite(p) or not 0<=p<=1 for p in probabilities.values()):
             raise ValueError('predictor must return finite texture/raw/cal probabilities')
-        if policy in ('P0_equal','P1_random'):
+        if policy=='P6_oracle':
+            if oracle is None:raise ValueError('oracle policy requires an explicitly privileged callback')
+            # This interface is used only by the labelled sanity comparator.
+            attempt=sum(r['attempt'] for r in records)<target and bool(oracle(frame,tuple(estimate),radius))
+        elif policy in ('P0_equal','P1_random'):
             attempt=t in schedule
         elif policy=='P5_untuned_product':
             product*=1-probabilities['cal'];attempt=1-product>=.9
         else:
             name={'P2_texture':'texture','P3_uncalibrated':'raw','P4_calibrated':'cal'}[policy]
             attempt=probabilities[name]>=threshold
-        used=False;gated=False;accepted=False;correct=False
+        if attempt_cap is not None and sum(r['attempt'] for r in records)>=attempt_cap:attempt=False
+        used=False;gated=False;accepted=False;correct=False;fix_position=None
         before=tuple(estimate)
         if attempt:
             fix=valid_fix(localizer(frame,before,radius))
             if t in stress:fix=Fix(False,None)
             accepted=fix.accepted
+            fix_position=fix.position if accepted else None
             if accepted:
                 correct=bool(np.linalg.norm(np.asarray(fix.position)-truth[t])<=100)
                 gated=bool(np.linalg.norm(np.asarray(fix.position)-estimate)>max(3*sigma,radius+300))
@@ -91,7 +101,7 @@ def replay(frame_ids, truth, params, seed, policy, predictor, localizer,
         error=float(np.linalg.norm(estimate-truth[t]))
         records.append({'frame':frame,'estimate_before':before,'estimate_after':tuple(estimate),
             'sigma':sigma,'radius':radius,'attempt':bool(attempt),'accepted':accepted,
-            'correct':correct,'used':used,'gated':gated,'error_m':error,'probabilities':dict(probabilities)})
+            'correct':correct,'used':used,'gated':gated,'fix_position':fix_position,'error_m':error,'probabilities':dict(probabilities)})
     errors=np.array([r['error_m'] for r in records]);episodes=0;streak=0
     for error in errors:
         streak=streak+1 if error>200 else 0

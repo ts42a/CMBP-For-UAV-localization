@@ -1,0 +1,15 @@
+{
+  "schema_version": "replay_execution_v1",
+  "declared_date": "2026-10-14",
+  "scope": "Operational details fixed before new local replay, supplement to Stage 9",
+  "source_threshold_stream": "P0 equal-spacing trajectories on source regions at the same seed, level and budget; online map features at the evolving estimate, with real live accepted-fix updates",
+  "threshold_quantile": "1 - budget, equal weight per source opportunity; ties retained and realised attempt counts reported",
+  "target_feedback": "Threshold is fixed from the source reference stream; shifted trajectories may change realised rates. Compare at matched actual attempts.",
+  "matched_equal_control": "P0 default uses every round(1/B)-th frame. Matched controls use the comparator's exact realised count, evenly spaced including endpoints.",
+  "matched_predictor_controls": "For P4 vs P2/P3, rerun each with an attempt cap equal to the smaller realised count. Prefixes through that cap are unchanged; paired totals must equal the cap.",
+  "cache_centres": "Exact float64 coordinates, no 25 m rounding; avoids introducing unmeasured cache approximation",
+  "local_replay": {"level": "L2", "budget": 0.1, "seed": 91001},
+  "full_replay": {"levels": ["L0", "L1", "L2", "L3"], "budgets": [0.05, 0.1, 0.2, 0.4], "seeds": [91001, 91002, 91003, 91004, 91005]},
+  "outcome_source": "A_live until a recorded independent fidelity check permits C_hybrid",
+  "oracle": "Privileged live look-ahead comparator; only correct fixes attempted, capped at the requested budget. Extra oracle calls reported separately from deployable policy costs."
+}

@@ -110,6 +110,16 @@ def shift(lat: float, lon: float, east_m: float, north_m: float) -> tuple[float,
 
 
 def pick_frames(args) -> list[dict]:
+    if getattr(args, 'frames_json', None):
+        selection=json.loads(Path(args.frames_json).read_text(encoding='utf-8'))
+        keys=[(r['region'],r['filename']) for r in selection['frames']]
+        if not keys or len(keys)!=len(set(keys)):
+            raise ValueError('frame selection is empty or duplicated')
+        by_key={(r['region_folder'],r['filename']):r
+                for region in sorted({k[0] for k in keys}) for r in load_manifest_region(region)}
+        if set(keys)-set(by_key):
+            raise ValueError('selected frames absent from dataset manifest')
+        return [by_key[k] for k in keys]
     if args.set in ("tune", "stage4"):
         sp = yaml.safe_load(STAGE3B_SPLITS.read_text(encoding="utf-8"))
         names = [q["filename"] for q in sp["tune_queries"]]
@@ -149,6 +159,7 @@ def main() -> int:
     ap.add_argument("--per-region", type=int, default=10)
     ap.add_argument("--select-seed", type=int, default=20260927)
     ap.add_argument("--max-frames", type=int, default=None)
+    ap.add_argument('--frames-json', help='Explicit reproducible frame selection written by test.py')
     ap.add_argument("--matcher-config", default=None, help="default = preregistration inputs.frozen_matcher")
     ap.add_argument("--accept-rule", default=None, help="override the pre-registered rule; 'none' leaves outcomes blank")
     ap.add_argument("--query-source", choices=["real", "synthetic"], default="real",

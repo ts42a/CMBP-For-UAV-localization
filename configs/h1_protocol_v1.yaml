@@ -1,5 +1,6 @@
 schema_version: h1_protocol_v1
-status: proposed_pending_approval   # becomes frozen_before_h1_labels once approved
+status: frozen_before_local_synthetic_labels
+approval_basis: author request on 2026-10-14 to finish local fixes and run the complete local workflow on 8 percent of data
 date: '2026-09-29'
 purpose: >
   H1: training on real localization outcomes transfers better to real test imagery than training

@@ -23,8 +23,11 @@ from pathlib import Path
 
 import pandas as pd
 import yaml
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/localization'))
+from integrity import read_csv,validate_outcomes,encoded_keys,sha256
 KEY = ["region", "filename", "variant", "radius_m", "offset_k"]
 SHOW = ["auroc", "pr_auc", "brier", "log_loss", "ece"]
 
@@ -42,6 +45,9 @@ def main() -> int:
     proto = yaml.safe_load((ROOT / args.protocol).read_text(encoding="utf-8"))
     outcomes = ROOT / (args.outcomes or proto["inputs"]["outcomes"])
     feat = ROOT / args.features
+    from evaluate_predictors import Data
+    Data(feat)  # validate the original producer hashes and ordered keys first
+    validate_outcomes(read_csv(outcomes))
     out = ROOT / args.out
     rep_dir = ROOT / args.reports_dir
 
@@ -59,8 +65,15 @@ def main() -> int:
     alt = out / "features_upper"
     alt.mkdir(parents=True, exist_ok=True)
     f.assign(label=upper.to_numpy()).to_csv(alt / "features.csv", index=False)
-    for extra in ("embeddings.npz", "run_manifest.json"):
-        shutil.copy2(feat / extra, alt / extra)
+    with np.load(feat/'embeddings.npz',allow_pickle=False) as original:
+        np.savez_compressed(alt/'embeddings.npz',near=original['near'],window=original['window'],
+                            attempt_keys=np.asarray(encoded_keys(f.to_dict('records'))))
+    manifest=json.loads((feat/'run_manifest.json').read_text())
+    manifest.update(features_csv_sha256=sha256(alt/'features.csv'),embeddings_npz_sha256=sha256(alt/'embeddings.npz'),
+        derivative='label-noise upper bound; accepted fixes treated as successes',
+        source_features_sha256=sha256(feat/'features.csv'),source_embeddings_sha256=sha256(feat/'embeddings.npz'),
+        outcomes_sha256=sha256(outcomes))
+    (alt/'run_manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
 
     runs = {}
     for tag, fdir in (("registered", feat), ("upper", alt)):

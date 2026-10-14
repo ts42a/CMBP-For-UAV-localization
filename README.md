@@ -27,9 +27,53 @@ Pilot scale only; no full-scale result exists yet.
 | 5 Multi-region pilot labels (110 frames × 9 attempts) | done, gate GO (`reports/stage5_pilot_decision.md`) |
 | 6–8 Predictors and calibration, pilot function check | done (`reports/stage6_8_pilot_v3_summary.md`); protocol v5 frozen (D6 approved 2026-09-30) |
 | 10 Kaggle GPU benchmark | done, GO: T4 labels identical to the PC on 180 attempts (`reports/stage10_decision.md`) |
-| 9 Route replay, H1 synthetic labels | protocols proposed (`configs/stage9_protocol_v1.yaml`, `configs/h1_protocol_v1.yaml`) |
-| 11 Full-scale real labels (6,744 frames × 9 attempts) | running on Kaggle, one region per kernel (`configs/stage11_labels_v1.yaml`, tag `stage11-labels-v1`) |
-| 12 Analysis, write-up | not started |
+| 9 Route replay, H1 synthetic labels | frozen protocols; local live replay, source-route threshold calibration, matched comparisons and synthetic workflow implemented; local sample execution in progress |
+| 11 Full-scale real labels (6,744 frames × 9 attempts) | 05/06/10 fetched and validated; seven jobs missing; new launch deferred until cloud RTX 4080 acceptance |
+| 12 Analysis, write-up | methods/preregistration draft exists; full results remain placeholders |
+
+## Run from Command Prompt
+
+```cmd
+cd /d F:\CMBL
+python test.py
+```
+
+Choose **1 Local** or **2 Full**. Local asks for the data percentage (default **8**)
+and CPU threads (default **4**). The launcher uses the project's `.venv` automatically.
+Full uses 100% and remains blocked until the actual cloud RTX 4080 benchmark passes;
+it does not rent hardware or submit Kaggle jobs.
+
+Equivalent unattended local command:
+
+```cmd
+python test.py --mode local --percent 8 --threads 4
+python test.py --status
+python test.py --stop
+```
+
+The 8% selection is **540 of 6,744 eligible frames**, allocated proportionally in
+deterministic contiguous blocks across ten regions (07 excluded). Each selected
+frame keeps all nine radius/offset attempts, for **4,860 real + 4,860 synthetic
+attempts**. This local development sample is not a full-scale hypothesis test.
+
+The runner executes preflight checks, both label sources, map features, protocol-v5
+predictors, matched H1 fits, the label-noise bound, paired contrasts, live route
+replay, source-route threshold calibration, matched-attempt controls and failure
+stress tests. Local replay uses L2, budget 10% and seed 91001; Full sweeps all 80
+registered level/budget/seed cells. The separate 2,000-attempt fidelity report
+cannot pass with too few distinct live attempts or missing levels/budgets.
+
+Outputs: `results/local/run_8pct_seed20261014/`. Inspect `status.json`, `logs/`, and
+the final `REPORT.md`. `--plan-only` shows the workload without running inference.
+Rerun the identical command to resume; changed code, configuration, data identity
+or thread settings require a new `--run-dir results/local/<name>`. One OS lock
+prevents two writers. `--stop` requests termination at the next 30-second heartbeat;
+completed frame writes and exact-centre live results are retained.
+
+CPU labelling can take many hours. Keep the computer awake. Four-thread predictor
+outputs may differ from historical byte-for-byte references below 1e-10; unchanged
+code reproduces those references under their original thread environment. The
+runner records its actual environment and never overwrites historical results.
 
 ## Repository layout
 

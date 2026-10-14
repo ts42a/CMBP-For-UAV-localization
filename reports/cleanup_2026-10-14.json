@@ -1,0 +1,404 @@
+{
+  "category": "Regenerable project Python bytecode only",
+  "date": "2026-10-14",
+  "deleted_count": 97,
+  "deleted_bytes": 1271399.0,
+  "files": [
+    {
+      "bytes": 6797,
+      "path": "F:\\CMBL\\scripts\\analysis\\__pycache__\\agl_vs_success.cpython-314.pyc"
+    },
+    {
+      "bytes": 12878,
+      "path": "F:\\CMBL\\scripts\\analysis\\__pycache__\\audit_track_offsets.cpython-314.pyc"
+    },
+    {
+      "bytes": 5172,
+      "path": "F:\\CMBL\\scripts\\analysis\\__pycache__\\reach_summary.cpython-314.pyc"
+    },
+    {
+      "bytes": 24178,
+      "path": "F:\\CMBL\\scripts\\analysis\\__pycache__\\summarize_windowed.cpython-314.pyc"
+    },
+    {
+      "bytes": 12757,
+      "path": "F:\\CMBL\\scripts\\analysis\\__pycache__\\verify_panels.cpython-314.pyc"
+    },
+    {
+      "bytes": 12303,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\agl_height.cpython-314.pyc"
+    },
+    {
+      "bytes": 8162,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\download_full_release.cpython-314.pyc"
+    },
+    {
+      "bytes": 4236,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\extract_full_release.cpython-314.pyc"
+    },
+    {
+      "bytes": 12277,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\frame_quality.cpython-314.pyc"
+    },
+    {
+      "bytes": 47584,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\full_dataset_audit.cpython-314.pyc"
+    },
+    {
+      "bytes": 3489,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\make_sat_preview.cpython-314.pyc"
+    },
+    {
+      "bytes": 3124,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\parse_arxiv_table2.cpython-314.pyc"
+    },
+    {
+      "bytes": 2303,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\resume_drive_range.cpython-314.pyc"
+    },
+    {
+      "bytes": 22856,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\sample_audit_fix.cpython-314.pyc"
+    },
+    {
+      "bytes": 36796,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\sample_audit.cpython-314.pyc"
+    },
+    {
+      "bytes": 9583,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\stage2b_blocked_outputs.cpython-314.pyc"
+    },
+    {
+      "bytes": 3764,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\stage2b_pipeline.cpython-314.pyc"
+    },
+    {
+      "bytes": 27266,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\stage2c_spatial_audit.cpython-314.pyc"
+    },
+    {
+      "bytes": 35671,
+      "path": "F:\\CMBL\\scripts\\audit\\__pycache__\\stage2d_footprint_validation.cpython-314.pyc"
+    },
+    {
+      "bytes": 19193,
+      "path": "F:\\CMBL\\scripts\\h1\\__pycache__\\synthetic_query.cpython-314.pyc"
+    },
+    {
+      "bytes": 7711,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\diagnose_verify_scale.cpython-312.pyc"
+    },
+    {
+      "bytes": 8549,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\diagnose_verify_scale.cpython-314.pyc"
+    },
+    {
+      "bytes": 6633,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\dino_embedder.cpython-312.pyc"
+    },
+    {
+      "bytes": 14604,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\dino_embedder.cpython-314.pyc"
+    },
+    {
+      "bytes": 13519,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\finalize_stage3b_decision.cpython-312.pyc"
+    },
+    {
+      "bytes": 14717,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\finalize_stage3b_decision.cpython-314.pyc"
+    },
+    {
+      "bytes": 6503,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\fine_verify.cpython-312.pyc"
+    },
+    {
+      "bytes": 7065,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\fine_verify.cpython-314.pyc"
+    },
+    {
+      "bytes": 6549,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\freeze_stage3b_splits.cpython-312.pyc"
+    },
+    {
+      "bytes": 7364,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\freeze_stage3b_splits.cpython-314.pyc"
+    },
+    {
+      "bytes": 6460,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\frozen_matcher.cpython-312.pyc"
+    },
+    {
+      "bytes": 7644,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\frozen_matcher.cpython-314.pyc"
+    },
+    {
+      "bytes": 1083,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\geo_utils.cpython-312.pyc"
+    },
+    {
+      "bytes": 1354,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\geo_utils.cpython-314.pyc"
+    },
+    {
+      "bytes": 21899,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\integrity.cpython-314.pyc"
+    },
+    {
+      "bytes": 1540,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\leakage.cpython-312.pyc"
+    },
+    {
+      "bytes": 2159,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\leakage.cpython-314.pyc"
+    },
+    {
+      "bytes": 6158,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\matchers.cpython-312.pyc"
+    },
+    {
+      "bytes": 7126,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\matchers.cpython-314.pyc"
+    },
+    {
+      "bytes": 13291,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\patch_verify.cpython-312.pyc"
+    },
+    {
+      "bytes": 15471,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\patch_verify.cpython-314.pyc"
+    },
+    {
+      "bytes": 1345,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\project_paths.cpython-312.pyc"
+    },
+    {
+      "bytes": 1649,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\project_paths.cpython-314.pyc"
+    },
+    {
+      "bytes": 3590,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\pyramid_ncc.cpython-312.pyc"
+    },
+    {
+      "bytes": 3951,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\pyramid_ncc.cpython-314.pyc"
+    },
+    {
+      "bytes": 2905,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\query_select.cpython-312.pyc"
+    },
+    {
+      "bytes": 3388,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\query_select.cpython-314.pyc"
+    },
+    {
+      "bytes": 7675,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\region_map.cpython-312.pyc"
+    },
+    {
+      "bytes": 9118,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\region_map.cpython-314.pyc"
+    },
+    {
+      "bytes": 1652,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\retrieval.cpython-312.pyc"
+    },
+    {
+      "bytes": 2045,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\retrieval.cpython-314.pyc"
+    },
+    {
+      "bytes": 28177,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\run_stage3a.cpython-312.pyc"
+    },
+    {
+      "bytes": 31741,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\run_stage3a.cpython-314.pyc"
+    },
+    {
+      "bytes": 9142,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3a_inspect_figures.cpython-312.pyc"
+    },
+    {
+      "bytes": 10628,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3a_inspect_figures.cpython-314.pyc"
+    },
+    {
+      "bytes": 19261,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3b_diagnose.cpython-312.pyc"
+    },
+    {
+      "bytes": 21351,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3b_diagnose.cpython-314.pyc"
+    },
+    {
+      "bytes": 21517,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3c_audit.cpython-312.pyc"
+    },
+    {
+      "bytes": 24033,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3c_audit.cpython-314.pyc"
+    },
+    {
+      "bytes": 6779,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3c_gate.cpython-312.pyc"
+    },
+    {
+      "bytes": 7484,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\stage3c_gate.cpython-314.pyc"
+    },
+    {
+      "bytes": 4095,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\tile_index.cpython-312.pyc"
+    },
+    {
+      "bytes": 4866,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\tile_index.cpython-314.pyc"
+    },
+    {
+      "bytes": 9689,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\windowed_matcher.cpython-312.pyc"
+    },
+    {
+      "bytes": 11907,
+      "path": "F:\\CMBL\\scripts\\localization\\__pycache__\\windowed_matcher.cpython-314.pyc"
+    },
+    {
+      "bytes": 60671,
+      "path": "F:\\CMBL\\scripts\\predictor\\__pycache__\\evaluate_predictors.cpython-314.pyc"
+    },
+    {
+      "bytes": 12364,
+      "path": "F:\\CMBL\\scripts\\predictor\\__pycache__\\label_noise_bound.cpython-314.pyc"
+    },
+    {
+      "bytes": 17893,
+      "path": "F:\\CMBL\\scripts\\predictor\\__pycache__\\map_features.cpython-314.pyc"
+    },
+    {
+      "bytes": 14374,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\archive_outputs.cpython-314.pyc"
+    },
+    {
+      "bytes": 3070,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\calibrate_drift.cpython-314.pyc"
+    },
+    {
+      "bytes": 8411,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\check_fp16_cache.cpython-314.pyc"
+    },
+    {
+      "bytes": 12310,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\compare_verifiers.cpython-314.pyc"
+    },
+    {
+      "bytes": 11371,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\cost_projection.cpython-314.pyc"
+    },
+    {
+      "bytes": 40991,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\kaggle_stage10.cpython-314.pyc"
+    },
+    {
+      "bytes": 11476,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\make_splits_v1.cpython-314.pyc"
+    },
+    {
+      "bytes": 9964,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\package_kaggle.cpython-314.pyc"
+    },
+    {
+      "bytes": 12960,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\route_replay.cpython-314.pyc"
+    },
+    {
+      "bytes": 4631,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\safe_import.cpython-314.pyc"
+    },
+    {
+      "bytes": 6359,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\select_accept_rule.cpython-314.pyc"
+    },
+    {
+      "bytes": 14247,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\stage10_compare.cpython-314.pyc"
+    },
+    {
+      "bytes": 9766,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\stage11_acceptance.cpython-314.pyc"
+    },
+    {
+      "bytes": 16221,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\stage3b_val_gate_v2.cpython-314.pyc"
+    },
+    {
+      "bytes": 13258,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\stage4_checks.cpython-314.pyc"
+    },
+    {
+      "bytes": 28337,
+      "path": "F:\\CMBL\\scripts\\protocol\\__pycache__\\verify.cpython-314.pyc"
+    },
+    {
+      "bytes": 6067,
+      "path": "F:\\CMBL\\scripts\\__pycache__\\extract_all_reference_embeddings.cpython-314.pyc"
+    },
+    {
+      "bytes": 5575,
+      "path": "F:\\CMBL\\scripts\\__pycache__\\extract_reference_embeddings.cpython-314.pyc"
+    },
+    {
+      "bytes": 23113,
+      "path": "F:\\CMBL\\scripts\\__pycache__\\generate_real_outcomes.cpython-314.pyc"
+    },
+    {
+      "bytes": 20304,
+      "path": "F:\\CMBL\\scripts\\__pycache__\\label_windowed.cpython-312.pyc"
+    },
+    {
+      "bytes": 23968,
+      "path": "F:\\CMBL\\scripts\\__pycache__\\label_windowed.cpython-314.pyc"
+    },
+    {
+      "bytes": 26353,
+      "path": "F:\\CMBL\\scripts\\__pycache__\\run_localization_pilot.cpython-314.pyc"
+    },
+    {
+      "bytes": 42492,
+      "path": "F:\\CMBL\\scripts\\__pycache__\\run_stage3b_recovery.cpython-314.pyc"
+    },
+    {
+      "bytes": 15419,
+      "path": "F:\\CMBL\\kaggle\\__pycache__\\stage10_kernel.cpython-312.pyc"
+    },
+    {
+      "bytes": 17804,
+      "path": "F:\\CMBL\\kaggle\\__pycache__\\stage10_kernel.cpython-314.pyc"
+    },
+    {
+      "bytes": 12957,
+      "path": "F:\\CMBL\\kaggle\\__pycache__\\stage10_runner.cpython-312.pyc"
+    },
+    {
+      "bytes": 14107,
+      "path": "F:\\CMBL\\kaggle\\__pycache__\\stage10_runner.cpython-314.pyc"
+    },
+    {
+      "bytes": 14568,
+      "path": "F:\\CMBL\\tests\\__pycache__\\test_integrity.cpython-314.pyc"
+    },
+    {
+      "bytes": 4222,
+      "path": "F:\\CMBL\\tests\\__pycache__\\test_replay.cpython-314.pyc"
+    }
+  ],
+  "verified_duplicate_removed": {
+    "path": "F:\\CMBL\\datasets\\sample\\03",
+    "retained": "F:\\CMBL\\datasets\\raw\\UAV_VisLoc_dataset\\03",
+    "files": 770,
+    "bytes": 3428281295,
+    "sha256_audit": "build/cleanup/sample03_duplicate_check.json",
+    "preview_script_repointed": true
+  }
+}

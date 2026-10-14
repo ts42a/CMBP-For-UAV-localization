@@ -45,6 +45,7 @@ from sklearn.preprocessing import StandardScaler
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/localization'))
 from integrity import validate_feature_pair
+from runtime_config import SETTINGS, PATH as RUNTIME_PATH, validate_protocol, logistic_options
 TEX = ("entropy", "edge_density", "grad_mean", "lap_var", "valid_frac")
 TEX_COLS = [f"tex_{w}_{k}" for w in ("near", "win") for k in TEX] + ["log_radius", "n_window_tiles"]
 EXTRA_COLS = ["log_radius", "n_window_tiles"]
@@ -104,7 +105,7 @@ def fit_predict(kind: str, d: Data, tr: np.ndarray, te: np.ndarray, y: np.ndarra
         parts_tr, parts_te = [], []
         for vec in (d.near, d.win):
             sc = StandardScaler().fit(vec[tr])
-            pca = PCA(n_components=16, random_state=0).fit(sc.transform(vec[tr]))
+            pca = PCA(n_components=SETTINGS["pca_components"], random_state=SETTINGS["pca_seed"], svd_solver=SETTINGS["pca_solver"]).fit(sc.transform(vec[tr]))
             parts_tr.append(pca.transform(sc.transform(vec[tr])))
             parts_te.append(pca.transform(sc.transform(vec[te])))
         parts_tr.append(d.extra[tr])
@@ -117,7 +118,7 @@ def fit_predict(kind: str, d: Data, tr: np.ndarray, te: np.ndarray, y: np.ndarra
             parts_te.append(d.flight[te])
         xtr, xte = np.hstack(parts_tr), np.hstack(parts_te)
     sc = StandardScaler().fit(xtr)
-    lr = LogisticRegression(C=1.0, max_iter=2000).fit(sc.transform(xtr), ytr)
+    lr = LogisticRegression(**logistic_options(SETTINGS["model_c"],SETTINGS["model_iterations"])).fit(sc.transform(xtr), ytr)
     return lr.predict_proba(sc.transform(xte))[:, 1]
 
 
@@ -131,7 +132,7 @@ def fit_calibrator(kind: str, p: np.ndarray, y: np.ndarray):
         c = float(y.mean())
         return lambda q: np.full(len(q), c)
     if kind == "platt":
-        m = LogisticRegression(C=1e6, max_iter=2000).fit(logit(p), y)
+        m = LogisticRegression(**logistic_options(SETTINGS["platt_c"],SETTINGS["model_iterations"])).fit(logit(p), y)
         return lambda q: m.predict_proba(logit(q))[:, 1]
     m = IsotonicRegression(out_of_bounds="clip", y_min=1e-3, y_max=1 - 1e-3).fit(p, y)
     return lambda q: m.predict(q)
@@ -151,7 +152,7 @@ def fit_fe_platt(p: np.ndarray, y: np.ndarray, g: np.ndarray):
     if both:
         m = np.isin(g, both)
         dummies = (g[m][:, None] == np.array(both)[None, :]).astype(float)
-        lr = LogisticRegression(C=10.0, fit_intercept=False, max_iter=5000).fit(np.hstack([z[m][:, None], dummies]), y[m])
+        lr = LogisticRegression(**logistic_options(SETTINGS["fe_c"],SETTINGS["fe_iterations"],False)).fit(np.hstack([z[m][:, None], dummies]), y[m])
         slope = max(0.0, float(lr.coef_[0, 0]))
 
     def nll(b: float) -> float:
@@ -195,6 +196,7 @@ def main() -> int:
     proto = yaml.safe_load(proto_path.read_text(encoding="utf-8"))
     if proto.get('schema_version') not in {f'predictor_protocol_v{i}' for i in range(1,6)}:
         raise ValueError('unsupported predictor protocol version')
+    validate_protocol(proto)
     proto_sha = sha256(proto_path)
     # v2 and later share fixed-effects calibration; v3 adds the global-permutation leakage control.
     v2 = proto["schema_version"] in ("predictor_protocol_v2", "predictor_protocol_v3", "predictor_protocol_v4", "predictor_protocol_v5")
@@ -443,6 +445,7 @@ def main() -> int:
         "embeddings_npz_sha256": sha256(feat_dir/'embeddings.npz'),
         "splits_sha256": sha256(ROOT/proto['inputs']['splits']),
         "feature_manifest_sha256": sha256(feat_dir/'run_manifest.json'),
+        "runtime_settings_sha256": sha256(RUNTIME_PATH),
         "frame_quality_sha256": sha256(ROOT/qual) if qual else None,
         "agl_sha256": sha256(ROOT/agl_csv) if diag else None,
     }, indent=2), encoding="utf-8")

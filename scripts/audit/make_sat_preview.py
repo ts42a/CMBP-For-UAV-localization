@@ -11,7 +11,7 @@ import numpy as np
 import tifffile
 from PIL import Image
 
-SAT = ROOT / "datasets/sample/03/satellite03.tif"
+SAT = ROOT / "datasets/raw/UAV_VisLoc_dataset/03/satellite03.tif"
 FIGS = ROOT / "figures/sample_audit"
 FIGS.mkdir(parents=True, exist_ok=True)
 

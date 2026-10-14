@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-14",
+  "region": "10",
+  "queries": 30,
+  "cold_seconds": 1.7595602000001236,
+  "warm_mean_seconds": 0.00026562666662357517,
+  "cached_tiles": 68,
+  "cache_limit": 2048,
+  "exact_repeat_parity": true,
+  "interpretation": "Single-centre microbenchmark; reuse helps repeated queries, not a whole-pipeline speedup estimate"
+}
