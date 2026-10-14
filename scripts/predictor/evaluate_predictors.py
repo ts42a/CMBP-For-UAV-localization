@@ -27,6 +27,7 @@ import argparse
 import hashlib
 import json
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -42,6 +43,8 @@ from sklearn.metrics import average_precision_score, brier_score_loss, log_loss,
 from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/localization'))
+from integrity import validate_feature_pair
 TEX = ("entropy", "edge_density", "grad_mean", "lap_var", "valid_frac")
 TEX_COLS = [f"tex_{w}_{k}" for w in ("near", "win") for k in TEX] + ["log_radius", "n_window_tiles"]
 EXTRA_COLS = ["log_radius", "n_window_tiles"]
@@ -64,9 +67,14 @@ def git(*args: str) -> str:
 
 
 class Data:
-    def __init__(self, feat_dir: Path, agl_csv: Path | None = None):
+    def __init__(self, feat_dir: Path, agl_csv: Path | None = None, groups=None):
         self.df = pd.read_csv(feat_dir / "features.csv", dtype={"region": str, "group_7": str})
-        emb = np.load(feat_dir / "embeddings.npz")
+        emb = np.load(feat_dir / "embeddings.npz", allow_pickle=False)
+        if groups is None:
+            scheme=json.loads((ROOT/'configs/splits_v1.json').read_text())['schemes']['primary_7group']
+            groups={r:g for g,v in scheme['groups'].items() for r in v['regions']}
+        registry = json.loads((ROOT/'configs/legacy_artifacts_v1.json').read_text())
+        self.input_hashes = validate_feature_pair(feat_dir,self.df,emb,groups,registry)
         self.near, self.win = emb["near"].astype(np.float64), emb["window"].astype(np.float64)
         self.y = self.df["label"].to_numpy(int)
         self.group = self.df["group_7"].to_numpy(str)
@@ -185,6 +193,8 @@ def main() -> int:
 
     proto_path = ROOT / args.protocol
     proto = yaml.safe_load(proto_path.read_text(encoding="utf-8"))
+    if proto.get('schema_version') not in {f'predictor_protocol_v{i}' for i in range(1,6)}:
+        raise ValueError('unsupported predictor protocol version')
     proto_sha = sha256(proto_path)
     # v2 and later share fixed-effects calibration; v3 adds the global-permutation leakage control.
     v2 = proto["schema_version"] in ("predictor_protocol_v2", "predictor_protocol_v3", "predictor_protocol_v4", "predictor_protocol_v5")
@@ -204,7 +214,8 @@ def main() -> int:
     if set(diag) - set(DIAG_MODELS):
         raise SystemExit(f"unknown diagnostic models {set(diag) - set(DIAG_MODELS)}")
     agl_csv = proto.get("diagnostic_models", {}).get("flight_context")
-    d = Data(feat_dir, ROOT / agl_csv if diag else None)
+    d = Data(feat_dir, ROOT / agl_csv if diag else None,
+             {r:g for g,v in scheme['groups'].items() for r in v['regions']})
     models, calibrated = MODELS + diag, CALIBRATED + diag
     seed = int(proto["metrics"]["bootstrap"].split("seed ")[1].split(",")[0])
     rng = np.random.default_rng(seed)
@@ -389,6 +400,9 @@ def main() -> int:
         "models": summary_models, "calibrator_choice": cal_choice,
         "shuffle_control_auroc": shuffle,
     }
+    legacy=json.loads((ROOT/'configs/legacy_artifacts_v1.json').read_text())
+    if d.input_hashes not in legacy['feature_pairs']:
+        summary['scope']='Evaluation of supplied feature set; headline exclusions and geographic groups follow the recorded protocol'
     if n_leak:
         two = [f for f, a in leak_perm.items() if a]
         per_perm_macro = [float(np.mean([leak_perm[f][k] for f in two])) for k in range(n_leak)]
@@ -426,6 +440,11 @@ def main() -> int:
         "git_dirty_scripts_or_configs": bool(git("status", "--porcelain", "--", "scripts", "configs")),
         "protocol_path": args.protocol, "protocol_sha256": proto_sha, "features_dir": args.features,
         "features_csv_sha256": sha256(feat_dir / "features.csv"),
+        "embeddings_npz_sha256": sha256(feat_dir/'embeddings.npz'),
+        "splits_sha256": sha256(ROOT/proto['inputs']['splits']),
+        "feature_manifest_sha256": sha256(feat_dir/'run_manifest.json'),
+        "frame_quality_sha256": sha256(ROOT/qual) if qual else None,
+        "agl_sha256": sha256(ROOT/agl_csv) if diag else None,
     }, indent=2), encoding="utf-8")
 
     reliability_figs(preds, folds, ROOT / args.figures_dir / args.name, cal_cols)
@@ -471,7 +490,7 @@ def fmt(x, nd: int = 3) -> str:
 
 def write_md(s: dict, per_fold: pd.DataFrame, name: str, out: str, v2: bool, reports_dir: Path = ROOT / "reports") -> None:
     md = [f"# {name} — Stages 6-8 predictor summary", "",
-          "**Function check on the Stage 5 pilot labels (10 frames per region), not a geographic result.** "
+          f"**{s['scope']}.** "
           f"Protocol `{s.get('protocol', 'configs/predictor_protocol_v1.yaml')}` (sha256 `{s['protocol_sha256'][:12]}…`), "
           f"fixed hyperparameters, region 07 excluded (deviation D2). Rows {s['n_rows']}, prevalence {s['prevalence']:.3f}.", ""]
     hx = s.get("headline_excluded")

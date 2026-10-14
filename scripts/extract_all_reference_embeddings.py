@@ -15,10 +15,11 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts" / "localization"))
 
-from dino_embedder import DinoGlobalEmbedder, save_embedding_cache  # noqa: E402
+from dino_embedder import DinoGlobalEmbedder, save_embedding_cache, load_embedding_cache  # noqa: E402
 from project_paths import CACHE_EMB  # noqa: E402
 from region_map import load_region, read_tile_rgb_region, tile_to_dict  # noqa: E402
 from tile_index import TileSpec  # noqa: E402
+from integrity import sha256
 
 FROZEN = ROOT / "configs" / "matcher_stage3b_frozen.yaml"
 GATE = ROOT / "reports" / "stage3c_preflight_gate.json"
@@ -54,11 +55,9 @@ def main() -> int:
         if out.exists() and not args.force:
             import numpy as np
 
-            data = np.load(out)
-            if len(data["embeddings"]) == len(tiles):
-                print(f"  cache ok {out.name}", flush=True)
-                continue
-            print(f"  cache tile count mismatch; rebuilding", flush=True)
+            load_embedding_cache(out, tiles=tiles, rasters=rasters)
+            print(f"  cache identity verified {out.name}", flush=True)
+            continue
         if embedder is None:
             embedder = DinoGlobalEmbedder(image_size=image_size)
         import numpy as np
@@ -84,6 +83,7 @@ def main() -> int:
                 "n_rasters": len(rasters),
                 "rasters": [r.filename for r in rasters],
                 "tiles": [tile_to_dict(t) for t in tiles],
+                "rasters_sha256": {r.filename:sha256(r.path) for r in rasters},
             },
         )
         print(f"  wrote {out} {embs.shape}", flush=True)

@@ -1,0 +1,92 @@
+{
+  "source": "F:\\CMBL\\build\\verify\\20261014_230356\\v3\\metrics_per_fold.csv",
+  "scope": "supplementary paired group contrasts; pilot input cannot establish full-scale hypotheses",
+  "contrasts": [
+    {
+      "left": [
+        "M3_dino_distinct",
+        "raw"
+      ],
+      "right": [
+        "M1_texture",
+        "raw"
+      ],
+      "metric": "auroc",
+      "eligible_groups": 6,
+      "groups": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G6",
+        "G7"
+      ],
+      "inconclusive": false,
+      "difference": 0.08659644577444243,
+      "ci95": [
+        0.012860921050848967,
+        0.1554023090288351
+      ],
+      "seed": 20261014,
+      "replicates": 10000
+    },
+    {
+      "left": [
+        "M2_dino",
+        "cal_v2_fe"
+      ],
+      "right": [
+        "M2_dino",
+        "raw"
+      ],
+      "metric": "brier",
+      "eligible_groups": 7,
+      "groups": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7"
+      ],
+      "inconclusive": false,
+      "difference": -0.004275875362361665,
+      "ci95": [
+        -0.08511477242250702,
+        0.07284610892453587
+      ],
+      "seed": 20261014,
+      "replicates": 10000
+    },
+    {
+      "left": [
+        "M2_dino",
+        "cal_v2_fe"
+      ],
+      "right": [
+        "M2_dino",
+        "raw"
+      ],
+      "metric": "log_loss",
+      "eligible_groups": 7,
+      "groups": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7"
+      ],
+      "inconclusive": false,
+      "difference": -0.16080736288607111,
+      "ci95": [
+        -0.5462256474939384,
+        0.14660077258738605
+      ],
+      "seed": 20261014,
+      "replicates": 10000
+    }
+  ]
+}

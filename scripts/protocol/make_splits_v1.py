@@ -125,6 +125,14 @@ def main() -> int:
             return 1
         old = json.loads(OUT.read_text(encoding="utf-8"))
         old.pop("created_at", None)
+        if old['manifest_sha256'] != payload['manifest_sha256']:
+            sys.path.insert(0, str(ROOT/'scripts/localization'))
+            from integrity import semantic_manifest
+            registry=json.loads((ROOT/'configs/legacy_artifacts_v1.json').read_text())['dataset_manifest']
+            if (old['manifest_sha256']==registry['original_sha256'] and
+                    semantic_manifest(MANIFEST)==registry['semantic_sha256']):
+                payload['manifest_sha256']=old['manifest_sha256']
+                body=json.dumps(payload,indent=2,sort_keys=True)
         if json.dumps(old, indent=2, sort_keys=True) != body:
             print("splits_v1.json differs from regenerated splits", file=sys.stderr)
             return 1

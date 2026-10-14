@@ -53,7 +53,9 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
 
     code_zip = out / f"cmbl-code-{commit[:7]}.zip"
-    raw = subprocess.check_output(["git", "archive", "--format=zip", "--prefix=CMBL/", commit, *CODE_PATHS], cwd=ROOT)
+    optional=[p for p in ('tests','LICENSE','DATA_STATEMENT.md')
+              if subprocess.run(['git','cat-file','-e',f'{commit}:{p}'],cwd=ROOT,capture_output=True).returncode==0]
+    raw = subprocess.check_output(["git", "archive", "--format=zip", "--prefix=CMBL/", commit, *CODE_PATHS, *optional], cwd=ROOT)
     with zipfile.ZipFile(io.BytesIO(raw)) as src, zipfile.ZipFile(code_zip, "w", zipfile.ZIP_DEFLATED) as dst:
         for item in src.infolist():
             dst.writestr(item, src.read(item.filename))
@@ -65,8 +67,11 @@ def main() -> int:
             raise SystemExit(f"missing local manifests {missing}: rebuild them from the dataset (see README)")
         frozen = json.loads((ROOT / "configs" / "splits_v1.json").read_text(encoding="utf-8"))["manifest_sha256"]
         if sha256(MANIFEST_DIR / "manifest.csv") != frozen:
-            raise SystemExit("datasets/manifests/manifest.csv does not match manifest_sha256 in configs/splits_v1.json; "
-                             "the frozen splits were built from a different manifest, so labels would not be comparable")
+            sys.path.insert(0,str(ROOT/'scripts/localization'))
+            from integrity import semantic_manifest
+            registry=json.loads((ROOT/'configs/legacy_artifacts_v1.json').read_text())['dataset_manifest']
+            if frozen!=registry['original_sha256'] or semantic_manifest(MANIFEST_DIR/'manifest.csv')!=registry['semantic_sha256']:
+                raise SystemExit('Dataset semantic identity differs from the frozen manifest')
         for f in local:
             arc = f"CMBL/datasets/manifests/{f.name}"
             if arc not in packed:  # a committed copy (older commits) wins; otherwise add the local file

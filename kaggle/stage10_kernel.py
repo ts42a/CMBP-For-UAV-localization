@@ -75,10 +75,22 @@ def extract(archive: Path, dest: Path) -> Path:
         t0 = time.perf_counter()
         if archive.suffix == ".zip":
             with zipfile.ZipFile(archive) as z:
+                import stat
+                seen=set()
+                for member in z.infolist():
+                    name=member.filename
+                    target=(dest/name).resolve()
+                    if ('\\' in name or ':' in name or '..' in Path(name).parts or
+                            not target.is_relative_to(dest.resolve()) or
+                            stat.S_ISLNK(member.external_attr>>16) or name.casefold() in seen):
+                        raise ValueError(f'unsafe ZIP member: {name}')
+                    seen.add(name.casefold())
+                if sum(m.file_size for m in z.infolist()) > 100*1024**3:
+                    raise ValueError('archive exceeds 100 GiB extraction limit')
                 z.extractall(dest)
         else:
             with tarfile.open(archive) as t:
-                t.extractall(dest)
+                t.extractall(dest, filter='data')
         marker.write_text(f"{time.perf_counter() - t0:.1f}\n")
         print(f"extracted {archive} -> {dest} in {marker.read_text().strip()} s", flush=True)
     return dest

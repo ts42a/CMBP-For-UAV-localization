@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-14",
+  "scope": "PC pilot function check: 900 attempts, 100 frames; not confirmatory full-scale evidence",
+  "source": "F:\\CMBL\\build\\verify\\20261014_230356\\v3\\metrics_per_fold.csv",
+  "source_sha256": "04c081cc0274b3ea6d02df8c504d46c9046232b030eb78b878402994120c9c00",
+  "models": [
+    {
+      "model": "M0_constant",
+      "macro_auroc": 0.5,
+      "macro_brier": 0.28455626932414485,
+      "eligible_auroc_groups": 6
+    },
+    {
+      "model": "M1_texture",
+      "macro_auroc": 0.5524035838335922,
+      "macro_brier": 0.32029470806645,
+      "eligible_auroc_groups": 6
+    },
+    {
+      "model": "M2_dino",
+      "macro_auroc": 0.651066554364626,
+      "macro_brier": 0.28733235168389043,
+      "eligible_auroc_groups": 6
+    },
+    {
+      "model": "M3_dino_distinct",
+      "macro_auroc": 0.6390000296080346,
+      "macro_brier": 0.29302295616515106,
+      "eligible_auroc_groups": 6
+    }
+  ]
+}

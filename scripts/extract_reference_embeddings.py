@@ -73,7 +73,9 @@ def main() -> int:
         embs,
         tile_ids,
         embedder.meta(),
-        extra={"region": args.region, "n_tiles": len(tiles), "georef": [west, north, sx, sy]},
+        extra={"region": args.region, "n_tiles": len(tiles), "georef": [west, north, sx, sy],
+               "tiles": [dict(__import__('dataclasses').asdict(t), west=west,north=north,sx=sx,sy=sy) for t in tiles],
+               "rasters_sha256": {sat_path.name:__import__('integrity').sha256(sat_path)}},
     )
     print(f"Wrote {out} shape {embs.shape}")
     return 0

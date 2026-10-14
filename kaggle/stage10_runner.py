@@ -122,6 +122,10 @@ def main() -> int:
 
     t0 = time.perf_counter()
     DinoGlobalEmbedder(image_size=224)
+    pin=json.loads((code/'configs/dinov2_artifacts_v1.json').read_text())
+    env['dinov2_revision']=pin['revision']
+    env['dinov2_weights_sha256']=pin['weights_sha256']
+    (out_dir/'env.json').write_text(json.dumps(env,indent=2),encoding='utf-8')
     model_load_s = time.perf_counter() - t0
 
     # Frozen labeller, in-process so the numerics flags above apply.
@@ -168,7 +172,7 @@ def main() -> int:
             torch.cuda.synchronize()
         embed_s = time.perf_counter() - t0
         new = np.vstack(vecs)
-        cached, _, _ = load_embedding_cache(CACHE_EMB / "region10_dinov2_vits14_224.npz")
+        cached, _, _ = load_embedding_cache(CACHE_EMB / "region10_dinov2_vits14_224.npz", tiles=tiles, rasters=rasters)
         r = rasters[0]
         m_per_deg_lat, m_per_deg_lon = 110_574.0, 111_320.0 * np.cos(np.radians(r.north))
         km2 = sum(ra.height * ra.sy * m_per_deg_lat * ra.width * ra.sx * m_per_deg_lon for ra in rasters) / 1e6

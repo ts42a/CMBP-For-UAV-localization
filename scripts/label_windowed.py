@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "localization"))
 
 from dino_embedder import DinoGlobalEmbedder, load_embedding_cache  # noqa: E402
+from integrity import OUTCOME_FIELDS, read_csv, validate_outcomes, prepare_run, source_identity, digest, append_frame_atomic
 from patch_verify import PatchVerifier  # noqa: E402
 from geo_utils import geodesic_m  # noqa: E402
 from project_paths import CACHE_EMB, DATASET_ROOT  # noqa: E402
@@ -51,16 +52,7 @@ SPLITS = ROOT / "configs" / "splits_v1.json"
 STAGE3B_SPLITS = ROOT / "configs" / "stage3b_splits.yaml"
 REGIONS = [f"{i:02d}" for i in range(1, 12)]
 
-FIELDS = [
-    "region", "group_7", "filename", "num", "variant", "radius_m", "offset_k",
-    "offset_east_m", "offset_north_m", "offset_dist_m", "center_lat", "center_lon",
-    "truth_dist_to_center_m", "truth_within_radius", "n_window_tiles", "n_candidates",
-    "pred_lat", "pred_lon", "predicted_tile_id", "predicted_raster_id", "top_score",
-    "score_margin", "fine_inliers", "used_homography", "geo_verify_status",
-    "geodesic_error_m", "accept_rule", "accepted", "outcome_primary",
-    "patch_n_mutual", "patch_query_rot_deg", "patch_sim_scale", "patch_sim_angle_deg", "patch_context_scale",
-    "runtime_s", "frame_setup_s", "frame_cpu_s", "matcher_id", "config_path", "config_sha256", "prereg_sha256",
-]
+FIELDS = OUTCOME_FIELDS
 KEY = ("region", "filename", "variant", "radius_m", "offset_k")
 
 
@@ -138,8 +130,8 @@ def pick_frames(args) -> list[dict]:
 def done_keys(path: Path) -> set[tuple]:
     if not path.is_file():
         return set()
-    with path.open(encoding="utf-8", newline="") as f:
-        return {tuple(r[k] for k in KEY) for r in csv.DictReader(f)}
+    rows = read_csv(path, FIELDS)
+    return validate_outcomes(rows, allow_unlabelled=True)
 
 
 def main() -> int:
@@ -192,7 +184,7 @@ def main() -> int:
         frames = frames[: args.max_frames]
     cfg_sha, prereg_sha = sha256(cfg_path), sha256(PREREG)
     cfg_rel = cfg_path.relative_to(ROOT).as_posix()
-    (out_dir / "run_manifest.json").write_text(json.dumps({
+    manifest = {
         "started_at": datetime.now(timezone.utc).isoformat(),
         "git_commit": git_head(),
         "git_dirty_scripts_or_configs": git_dirty(),
@@ -208,17 +200,29 @@ def main() -> int:
         "offsets_per_radius": k_per,
         "variant": variant,
         "n_frames": len(frames),
-    }, indent=2), encoding="utf-8")
+    }
+    cache_files = [CACHE_EMB / f"region{r}_dinov2_vits14_{int(frozen['model']['image_size'])}.npz"
+                   for r in sorted({q['region_folder'] for q in frames})]
+    manifest['experiment'] = {
+        'config_sha256': cfg_sha, 'prereg_sha256': prereg_sha,
+        'splits_sha256': sha256(SPLITS), 'accept_rule': rule, 'variant': variant,
+        'radii': radii, 'offsets_per_radius': k_per, 'offset_seed': seed,
+        'control_offset_m': args.control_offset_m,
+        'frames': [{k:v for k,v in q.items() if k != 'image_path'} for q in frames],
+        'source_sha256': source_identity(ROOT),
+        'h1_protocol_sha256': sha256(H1_PROTOCOL) if synth is not None else None,
+        'cache_sha256': {p.name: {'data': sha256(p), 'metadata': sha256(p.with_suffix('.meta.json'))}
+                         for p in cache_files},
+    }
+    if done:
+        validate_outcomes(read_csv(out_csv, FIELDS), expected={'config_sha256': cfg_sha,
+            'prereg_sha256': prereg_sha, 'accept_rule': rule or ''}, tolerance=tol, allow_unlabelled=rule is None)
+    prepare_run(out_dir, manifest)
 
     spec = TileSpec(int(frozen["retrieval"]["tiling"]["tile_size_px"]), int(frozen["retrieval"]["tiling"]["stride_px"]))
     embedder = DinoGlobalEmbedder(image_size=int(frozen["model"]["image_size"]))
     verifier = PatchVerifier(embedder.model, frozen["fine_match"]) if is_patch(frozen) else None
     new_rows = 0
-    f_out = out_csv.open("a", encoding="utf-8", newline="")
-    writer = csv.DictWriter(f_out, fieldnames=FIELDS)
-    if out_csv.stat().st_size == 0:
-        writer.writeheader()
-        f_out.flush()
 
     current_region, index = None, None
     for q in frames:
@@ -230,7 +234,7 @@ def main() -> int:
         if region != current_region:
             rasters, tiles = load_region(region, spec)
             cache = CACHE_EMB / f"region{region}_dinov2_vits14_{int(frozen['model']['image_size'])}.npz"
-            embs, _, _ = load_embedding_cache(cache)
+            embs, _, _ = load_embedding_cache(cache, tiles=tiles, rasters=rasters)
             if len(embs) != len(tiles):
                 raise RuntimeError(f"region {region}: {len(embs)} embeddings != {len(tiles)} tiles")
             index = RegionIndex(tiles, rasters, embs)
@@ -296,12 +300,10 @@ def main() -> int:
         for row in pending:
             row["frame_setup_s"] = round(setup_s, 3)
             row["frame_cpu_s"] = round(cpu_s, 3)
-            writer.writerow({k: row.get(k, "") for k in FIELDS})
-            f_out.flush()
             new_rows += 1
+        append_frame_atomic(out_csv, [{k: row.get(k, '') for k in FIELDS} for row in pending], FIELDS)
         print(f"  {q['filename']} attempts={len(pending)} wall={time.perf_counter() - t0:.1f}s cpu={cpu_s:.1f}s", flush=True)
 
-    f_out.close()
     print(f"done: {new_rows} new rows -> {out_csv}")
     return 0
 

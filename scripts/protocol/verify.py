@@ -42,7 +42,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PY = sys.executable
-CHECKS = ("env", "frozen", "splits", "predictor", "predictor_v4", "predictor_v5", "labels")
+CHECKS = ("env", "frozen", "splits", "contracts", "full_labels", "predictor", "predictor_v4", "predictor_v5", "labels")
 SLOW = ("predictor_v4", "predictor_v5", "labels")
 PILOT_OUT = ROOT / "results" / "stage5" / "pilot" / "outcomes.csv"
 V3_DIR = ROOT / "results" / "stage8" / "pilot_v3"
@@ -241,6 +241,48 @@ def check_labels(tmp: Path) -> str:
         raise Fail(f"golden labels disagree: {a['outcome_disagreements']} outcome(s), agreement_pass={a['agreement_pass']}")
     return (f"{a['n_attempts']} attempts identical outcomes, max position diff {a['position_max_diff_m']} m, "
             f"config hash {'matches' if a['config_sha256_matches_reference'] else 'DIFFERS'}")
+
+
+def check_contracts(tmp: Path) -> str:
+    import os
+    scratch = tmp / 'test-tmp'
+    scratch.mkdir()
+    old = {k: os.environ.get(k) for k in ('TEMP', 'TMP')}
+    try:
+        os.environ.update(TEMP=str(scratch.resolve()), TMP=str(scratch.resolve()))
+        run([PY, '-m', 'unittest', 'discover', '-s', 'tests', '-v'], tmp/'contracts.log')
+    finally:
+        for k, v in old.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    return 'integrity and replay regression tests passed'
+
+
+def check_full_labels(tmp: Path) -> str:
+    from stage11_acceptance import check_region
+    regions = sorted(p.name for p in (ROOT/'results/full/labels_v1').glob('[0-9][0-9]') if p.is_dir())
+    if not regions:
+        raise Skip('no fetched full-label regions')
+    records = [check_region(r) for r in regions]
+    sys.path.insert(0,str(ROOT/'scripts/localization'))
+    from dino_embedder import load_embedding_cache
+    from region_map import load_region
+    from tile_index import TileSpec
+    for record in records:
+        if record['pass']:
+            try:
+                rasters,tiles=load_region(record['region'],TileSpec(1024,512))
+                load_embedding_cache(ROOT/'datasets/cache/embeddings'/f"region{record['region']}_dinov2_vits14_224.npz",tiles=tiles,rasters=rasters)
+                record['source_cache_identity_pass']=True
+            except (OSError,ValueError,KeyError) as exc:
+                record.update({'pass':False,'source_cache_identity_pass':False,'error':str(exc)})
+    (tmp/'full_labels.json').write_text(json.dumps(records, indent=2), encoding='utf-8')
+    failures = [r for r in records if not r['pass']]
+    if failures:
+        raise Fail(str(failures))
+    return '; '.join(f"{r['region']}: {r['rows']} attempts, exact grid and pilot agreement PASS" for r in records)
 
 
 def main() -> int:

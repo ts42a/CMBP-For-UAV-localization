@@ -81,7 +81,9 @@ Download `stage10_kaggle_bench.zip` from the notebook's output panel.
 
 ## 5. Back on the PC
 
-Unzip into the repo so the files land in `results/stage10/kaggle_bench/`, then:
+Use `py -3 scripts/protocol/kaggle_stage10.py fetch` to stage and validate the
+download before promotion. Existing results are retained as a timestamped backup.
+For already imported results:
 
 ```
 py -3 scripts/protocol/stage10_compare.py results/stage10/kaggle_bench --name stage10_benchmark
@@ -92,3 +94,49 @@ py -3 scripts/protocol/cost_projection.py --timing results/stage10/kaggle_bench/
 `stage10_compare.py` applies the frozen agreement criteria (≥ 97% identical outcomes, accepted
 positions within 5 m for ≥ 95%) and lists every disagreement. The cost sheet then decides whether
 to stay on Kaggle (projection ≤ 3 × weekly quota).
+
+## 6. Stage 11 full labels
+
+The historical `stage11-labels-v1` tag resolves to the exact commit
+`88631e377a5ab8b006d9ad372ca516c1b77f8bdf`. Downloaded jobs record its pre-history-rewrite
+identity `25b60606259d4937632407d0629b613ae6388996`; the documented mapping is in
+`reports/history_rewrite_2026-09-30.md`. These are equivalent historical identities.
+The integrity repairs made on 2026-10-14 are subsequent changes; that historical
+tag does **not** contain the repairs. Do not move the tag or claim that it does.
+
+1. Run `.venv\Scripts\python.exe scripts/protocol/verify.py` on the PC. It checks
+   every fetched full-label region, model/cache identity, and the golden pilot.
+2. Run `py -3 scripts/protocol/stage11_status.py` for a live, timestamped Kaggle
+   status snapshot. On 2026-10-14, 05/06/10 finished and were fetched and accepted;
+   01/02/03/04/08/09/11 were absent from the owned-kernel listing. Region 07 is excluded.
+3. Before a new launch, run the Stage 10 runner on the actual RTX 4080 with
+   `--out results/stage10/rtx4080_bench`. Use the same 20 frames / 180 attempts,
+   float32, TF32 off, and verified DINOv2 artifacts. Record its real runtime;
+   CPU and T4 runtime versions cannot stand in for the 4080.
+4. Run `.venv\Scripts\python.exe scripts/protocol/launch_gate.py`. It requires
+   all 180 keys, identical outcome labels against the T4, and the registered
+   accepted-position agreement. Missing evidence fails closed. Stage 11 dispatch
+   now calls this gate before pushing new jobs.
+5. Commit and package the chosen source revision with `package_kaggle.py --ref
+   <exact-commit>`, then stage/upload the code and cache using the existing commands
+   above. Record that new revision separately from the historical tag. A new
+   bundle must contain `dinov2_artifacts_v1.json` and `legacy_artifacts_v1.json`.
+6. After the launch gate passes, `py -3 scripts/protocol/kaggle_stage10.py labels
+   --regions 01,02,03,04,08,09,11` handles jobs and fetches each result. The planned
+   total is 6,744 frames / 60,696 attempts across ten regions. The acceptance
+   check requires every frame × {100,300,1000} m × {0,1,2} offset, unique keys,
+   valid labels/provenance, and all expected pilot overlap. Zero overlap fails.
+7. Keep each `integrity_check.json`, `env.json`, `run_manifest.json` and original
+   outcome CSV. Fetching stages ZIP contents under `build/kaggle/staging`, validates
+   before promotion, and retains any replaced result. Never extract an output ZIP
+   over source code. For an explicitly chosen new commit, use
+   `stage11_acceptance.py --expected-commit <exact-commit> --regions <regions>`.
+
+Legacy label runs have no immutable resume fingerprint. Keep them as historical
+evidence and use a new output directory with the repaired runner. New resumes
+require unchanged protocol, frame selection, code and cache identities.
+
+The DINOv2 pin is `7764ea0f912e53c92e82eb78a2a1631e92725fc8`; weights SHA-256 is
+`b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9`.
+Actual observed runtimes are in `reports/runtime_inventory_2026-10-14.json`.
+The 4080 benchmark and 2,000-attempt replay fidelity check remain outstanding.

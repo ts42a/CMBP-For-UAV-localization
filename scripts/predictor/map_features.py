@@ -31,6 +31,7 @@ from project_paths import CACHE_EMB  # noqa: E402
 from region_map import load_region, read_tile_rgb_region  # noqa: E402
 from tile_index import TileSpec  # noqa: E402
 from windowed_matcher import M_PER_DEG_LAT, M_PER_DEG_LON_EQ, RegionIndex  # noqa: E402
+from integrity import read_csv, validate_outcomes, encoded_keys
 
 PROTOCOL = ROOT / "configs" / "predictor_protocol_v1.yaml"
 TEX = ("entropy", "edge_density", "grad_mean", "lap_var", "valid_frac")
@@ -87,14 +88,22 @@ def main() -> int:
     spec = TileSpec(int(proto["tiling"]["tile_size_px"]), int(proto["tiling"]["stride_px"]))
 
     outcomes_path = ROOT / args.outcomes
-    with outcomes_path.open(encoding="utf-8", newline="") as f:
-        rows = [r for r in csv.DictReader(f) if r["region"] not in excluded]
+    rows = read_csv(outcomes_path)
+    prereg = yaml.safe_load((ROOT/proto['inputs']['prereg']).read_text())
+    validate_outcomes(rows, expected={'accept_rule':prereg['accept_rule']['selected'],
+        'config_sha256':sha256(ROOT/prereg['inputs']['frozen_matcher'])}, tolerance=prereg['tolerances_m']['primary'])
+    source_manifest = json.loads((outcomes_path.parent/'run_manifest.json').read_text())
+    if source_manifest.get('prereg_sha256') != rows[0]['prereg_sha256']:
+        raise ValueError('outcome rows differ from producer preregistration identity')
+    rows = [r for r in rows if r['region'] not in excluded]
+    if not rows:
+        raise ValueError('no feature rows remain after protocol exclusions')
     rows.sort(key=lambda r: (r["region"], int(r["num"]), int(r["radius_m"]), int(r["offset_k"])))
 
     out_rows, emb_near, emb_win = [], [], []
     for region in sorted({r["region"] for r in rows}):
         rasters, tiles = load_region(region, spec)
-        embs, _, _ = load_embedding_cache(CACHE_EMB / f"region{region}_dinov2_vits14_224.npz")
+        embs, _, _ = load_embedding_cache(CACHE_EMB / f"region{region}_dinov2_vits14_224.npz", tiles=tiles, rasters=rasters)
         if len(embs) != len(tiles):
             raise RuntimeError(f"region {region}: {len(embs)} embeddings != {len(tiles)} tiles")
         idx = RegionIndex(tiles, rasters, embs)
@@ -147,7 +156,7 @@ def main() -> int:
         w.writeheader()
         w.writerows(out_rows)
     np.savez_compressed(out_dir / "embeddings.npz", near=np.asarray(emb_near, np.float32),
-                        window=np.asarray(emb_win, np.float32))
+                        window=np.asarray(emb_win, np.float32), attempt_keys=np.asarray(encoded_keys(out_rows)))
     (out_dir / "run_manifest.json").write_text(json.dumps({
         "created_at": datetime.now(timezone.utc).isoformat(),
         "git_commit": git("rev-parse", "HEAD"),
@@ -159,6 +168,12 @@ def main() -> int:
         "excluded_regions": sorted(excluded),
         "n_rows": len(out_rows),
         "embeddings_row_order": "same as features.csv",
+        "features_csv_sha256": sha256(out_dir/'features.csv'),
+        "embeddings_npz_sha256": sha256(out_dir/'embeddings.npz'),
+        "outcome_manifest_sha256": sha256(outcomes_path.parent/'run_manifest.json'),
+        "cache_identities": {r: {'data':sha256(CACHE_EMB/f'region{r}_dinov2_vits14_224.npz'),
+                                  'metadata':sha256(CACHE_EMB/f'region{r}_dinov2_vits14_224.meta.json')}
+                             for r in sorted({x['region'] for x in rows})},
     }, indent=2), encoding="utf-8")
 
     import matplotlib

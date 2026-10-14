@@ -292,9 +292,14 @@ def cmd_fetch(args) -> None:
     if RESULT.exists():
         if not args.force:
             raise SystemExit(f"{RESULT} exists; pass --force to replace it")
-        shutil.rmtree(RESULT)
-    with zipfile.ZipFile(bundle) as z:
-        z.extractall(ROOT)
+    from safe_import import stage_zip, promote
+    sys.path.insert(0,str(ROOT/'scripts/localization'))
+    from integrity import read_csv, validate_outcomes
+    stage, candidate=stage_zip(bundle, BUILD/'staging', 'results/stage10/kaggle_bench/')
+    validate_outcomes(read_csv(candidate/'outcomes.csv'))
+    subprocess.check_call([sys.executable, str(ROOT/'scripts/protocol/stage10_compare.py'),
+                           str(candidate), '--reports-dir', str(stage), '--name', 'preimport'], cwd=ROOT)
+    promote(candidate, RESULT)
     print(f"unpacked -> {RESULT}")
     compare_and_cost(args)
 
@@ -350,48 +355,11 @@ def gpu_hours(r: str) -> float:
 
 
 def check_labels(r: str, expect_commit: str) -> dict:
-    """Acceptance checks for one region's labels; writes <LABELS>/<r>/check.json."""
-    d = LABELS / r
-    rows = csv_rows(d / "outcomes.csv") if (d / "outcomes.csv").is_file() else []
-    env = json.loads((d / "env.json").read_text(encoding="utf-8")) if (d / "env.json").is_file() else {}
-    frames = region_frames(r)
-    keys = [tuple(x[k] for k in LABEL_KEY) for x in rows]
-    pilot = {tuple(x[k] for k in LABEL_KEY): x for x in csv_rows(PILOT)}
-    ref_sha = {x["config_sha256"] for x in pilot.values()}
-    both = [(x, pilot[k]) for x, k in zip(rows, keys) if k in pilot]
-    same = sum(x["outcome_primary"] == p["outcome_primary"] for x, p in both)
-    acc = [(x, p) for x, p in both if x["accepted"] == "1" and p["accepted"] == "1"]
-
-    def dist_m(x, p):
-        import math
-        dlat = (float(x["pred_lat"]) - float(p["pred_lat"])) * 110_574.0
-        dlon = (float(x["pred_lon"]) - float(p["pred_lon"])) * 111_320.0 * math.cos(math.radians(float(p["pred_lat"])))
-        return math.hypot(dlat, dlon)
-
-    within = sum(dist_m(x, p) <= 5.0 for x, p in acc)
-    rec = {
-        "region": r, "checked_utc": now(), "rows": len(rows), "expected_rows": len(frames) * ATTEMPTS_PER_FRAME,
-        "frames": len({x["filename"] for x in rows}), "expected_frames": len(frames),
-        "complete": len(rows) == len(frames) * ATTEMPTS_PER_FRAME and {x["filename"] for x in rows} == frames,
-        "no_duplicate_keys": len(keys) == len(set(keys)),
-        "config_sha256": sorted({x["config_sha256"] for x in rows}),
-        "config_sha256_matches_pilot": {x["config_sha256"] for x in rows} == ref_sha,
-        "gpu": env.get("gpu"), "cuda_available": env.get("cuda_available"),
-        "bundle_commit": env.get("bundle_commit"), "bundle_commit_expected": expect_commit,
-        "pilot_overlap_attempts": len(both), "pilot_overlap_identical_outcome": same,
-        "pilot_overlap_both_accepted": len(acc), "pilot_overlap_within_5m": within,
-        "label_hours": round(sum(float(x["runtime_s"]) for x in rows) / 3600, 2),
-    }
-    # Pilot frames reappear in the full table: Stage 10 agreement criteria applied to them.
-    pilot_ok = (not both) or (same >= 0.97 * len(both) and (not acc or within >= 0.95 * len(acc)))
-    rec["pass"] = bool(rec["complete"] and rec["no_duplicate_keys"] and rec["config_sha256_matches_pilot"]
-                       and rec["cuda_available"] and rec["bundle_commit"] == expect_commit and pilot_ok)
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "check.json").write_text(json.dumps(rec, indent=2), encoding="utf-8")
-    return rec
+    from stage11_acceptance import check_region
+    return check_region(r, expect_commit)
 
 
-def fetch_labels(r: str, kid: str) -> None:
+def fetch_labels(r: str, kid: str, expected_commit=None) -> None:
     dl = BUILD / "output" / f"labels_{r}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     dl.mkdir(parents=True, exist_ok=True)
     kaggle("kernels", "output", kid, "-p", str(dl))
@@ -400,10 +368,13 @@ def fetch_labels(r: str, kid: str) -> None:
         disc = next(dl.rglob("kernel_discovery.json"), None)
         raise SystemExit(f"region {r}: no cmbl_results.zip in {dl}"
                          + (f"; discovery: {disc.read_text(encoding='utf-8')}" if disc else ""))
-    if (LABELS / r).exists():
-        shutil.rmtree(LABELS / r)
-    with zipfile.ZipFile(bundle) as z:
-        z.extractall(ROOT)
+    from safe_import import stage_zip, promote
+    from stage11_acceptance import check_region, STAGE11_TAG
+    stage, candidate = stage_zip(bundle, BUILD/'staging', f'results/full/labels_v1/{r}/')
+    rec = check_region(r, expected_commit or STAGE11_TAG, directory=candidate)
+    if not rec['pass']:
+        raise SystemExit(f'Fetched region failed integrity; original preserved; staged evidence at {candidate}: {rec}')
+    promote(candidate, LABELS/r)
 
 
 def label_quota_left() -> float | None:
@@ -423,8 +394,8 @@ def cmd_labels(args) -> None:
     for r in regions:
         if r not in LABEL_REGIONS:
             raise SystemExit(f"region {r} is not labelled (07 is excluded by D2)")
-        chk = LABELS / r / "check.json"
-        if chk.is_file() and json.loads(chk.read_text(encoding="utf-8"))["pass"] and not args.repush:
+        chk = LABELS / r / "integrity_check.json"
+        if chk.is_file() and check_labels(r, commit)['pass'] and not args.repush:
             print(f"region {r}: done (check passed)", flush=True)
             continue
         folder = label_dir(r)
@@ -437,6 +408,10 @@ def cmd_labels(args) -> None:
         elif st == "complete" and not args.repush:
             print(f"region {r}: finished on Kaggle; fetching", flush=True)
         else:
+            from launch_gate import check as launch_check
+            gate=launch_check()
+            if not gate['pass']:
+                raise SystemExit(f"Launch blocked: {gate.get('blocker', 'RTX 4080/T4 agreement failed')}")
             need, left = gpu_hours(r), label_quota_left()
             if left is not None and left < need:
                 raise SystemExit(f"region {r} needs ~{need:.1f} GPU h but {left:.1f} h of the weekly quota are left; "
@@ -448,7 +423,7 @@ def cmd_labels(args) -> None:
         if args.no_wait and st != "complete":
             continue
         st = wait_kernel(kid, args.timeout_min)
-        fetch_labels(r, kid)
+        fetch_labels(r, kid, commit)
         rec = check_labels(r, commit)
         print(json.dumps(rec, indent=2), flush=True)
         if not rec["pass"]:
@@ -459,7 +434,7 @@ def cmd_labels(args) -> None:
 def cmd_labels_status(args) -> None:
     print(f"{'region':>6} {'frames':>6} {'rows':>6} {'expected':>8}  check", flush=True)
     for r in sorted(LABEL_REGIONS):
-        chk = LABELS / r / "check.json"
+        chk = LABELS / r / "integrity_check.json"
         rec = json.loads(chk.read_text(encoding="utf-8")) if chk.is_file() else {}
         print(f"{r:>6} {len(region_frames(r)):>6} {rec.get('rows', 0):>6} {len(region_frames(r)) * ATTEMPTS_PER_FRAME:>8}  "
               f"{'PASS' if rec.get('pass') else ('FAIL' if rec else '-')}", flush=True)

@@ -1,0 +1,108 @@
+{
+  "schema_version": "legacy_artifacts_v1",
+  "recorded_date": "2026-10-14",
+  "limitation": "Audited snapshot of preserved legacy bytes, not retroactive producer provenance. Pilot association is grandfathered only for this exact pair; new features must carry keys and hashes.",
+  "embedding_caches": {
+    "region01_dinov2_vits14_224.npz": {
+      "data_sha256": "f0a67a3dcd5dc37323a861b2ba356152867c00be46aa75bdc3a64cf78adc97b6",
+      "metadata_sha256": "826ad102181930565d0fccd1132b0d09ce3ba268acfe1bc0f96aab8b5444af7b",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite01.tif": "e2f0e4e5c266cf44ee7cfe1974f60ab397d373c0b022b4f79c9da5d412d3eb1d"
+      }
+    },
+    "region02_dinov2_vits14_224.npz": {
+      "data_sha256": "fde4b5770af169402bc684e1d4da2e0b8be60356e3f0e47a13802bce1487cc38",
+      "metadata_sha256": "879b4089a0f82d3a8ed8b6bd836078a4d4c8d17af1ef8c338c192bd7375fb069",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite02.tif": "eb9ab96d1dc896ea9094a74278e5cded14709927653c05ac70ffa066482e05b2"
+      }
+    },
+    "region03_dinov2_vits14_224.npz": {
+      "data_sha256": "e01e2938f169794ac43241dc76f1adcede8fad5c461305e2bba64e64ad9892ed",
+      "metadata_sha256": "c702b9261a7eece635987b1f4e8f2bcc7e12753efca9ce1b7a7fad655cfd7f06",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite03.tif": "0a267f3415d60e4bcdc3f38d584c1bd15a2683b9c8849836adf0ec20a10e8dc7"
+      }
+    },
+    "region04_dinov2_vits14_224.npz": {
+      "data_sha256": "847fd292beef2a8c476b6eda770de1fd76c432700aa4a6f9d02e244540c9d51e",
+      "metadata_sha256": "fe1b55917f1f30dba511e03513589cfbfa1889766a80c4298e8ab48198b31504",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite04.tif": "6351c04b445a3855713f37c4b275d67288b0ddea3fc8f2dc61eb7c373b240f6a"
+      }
+    },
+    "region05_dinov2_vits14_224.npz": {
+      "data_sha256": "5255daa9c6a79d5e57ded117015c419da7093092de082fd394cb1b03ebd6b7a1",
+      "metadata_sha256": "36cdb9cd4968ea3d439fa458544429e7137bdb3032292f54f2af9f71c77f4c84",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite05.tif": "c30d2e2004b68310df8b8207fba253c37e36909c26f7112144269997861216f9"
+      }
+    },
+    "region06_dinov2_vits14_224.npz": {
+      "data_sha256": "3f7bd13b55a4610f4b371c80694766ba623376cfd1f19712a10a7a9f7f8549f4",
+      "metadata_sha256": "510074aa28966e37e442e4a1d2c8f8c146d67471e2e8ff459a564b7c3fb9569d",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite06.tif": "041c94d3a1f83744e2e818588163f22e36aa211a26b5f0384f7d0207ce050bc5"
+      }
+    },
+    "region07_dinov2_vits14_224.npz": {
+      "data_sha256": "bd3c92cf5695a7194787ec714cf56e88eb291ed00002a70cca829ce1838ee0a3",
+      "metadata_sha256": "1b6f0f7e8d157b4d4ff5792a52ff258f345039df6af5f8ba9965b2014e425f89",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite07.tif": "68cc7237d6a8058c73a86ff5294029e8dd81787041af976176de55fc091d16c8"
+      }
+    },
+    "region08_dinov2_vits14_224.npz": {
+      "data_sha256": "46d22b4e8a8cb194e5028396ae4e26ec1f2b33db0853f651913674806741ca89",
+      "metadata_sha256": "4c3cbf5c6bf07353a719e88c8d84e4f6c3712d9880fb8a873e925b6852376335",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite08.tif": "f5340341476a7eb31aa82f3b09ea27a24ec5de5ccf9e59eb3e4d70a79c649ea9"
+      }
+    },
+    "region09_dinov2_vits14_224.npz": {
+      "data_sha256": "746a335a2f16a7e1ec7d2a01bef752de6571a28c034d484b8c4660623fa6fbdb",
+      "metadata_sha256": "7104002d5ca4af24651c0e95f72eed6bbedce9cefade00f5699ca48914033977",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite09_01-01.tif": "e1490f78b581a2a1c458068d6508d53231ecb5fe1c7834c741e881ead612a3f9",
+        "satellite09_01-02.tif": "9cfa439e93ff8fc3de1ab1e4c8bf8197216b7095ac5af9da3434097c1bfb2206",
+        "satellite09_02-01.tif": "28da8c31c6a8b282325b19e714a4ed89b6a4b8b78729cb91a4b0f45366671820",
+        "satellite09_02-02.tif": "0fcf998a7786ad55058674b2ad2b4c5fe2857bf1544bad79570d593ed97bfa44"
+      }
+    },
+    "region10_dinov2_vits14_224.npz": {
+      "data_sha256": "ecb8e9ca38e27a8095a475d9956a50e654300c292f86d2c18bf6eadfea28185a",
+      "metadata_sha256": "c3b03ea9964f6fbf547e268f6a3c83de0b2f3da2e2fd2cd28f2ad37596623458",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite10.tif": "8f5f8276360d38494ff4817b3436d28e394dd6713bd9c923d8b09ca764af7d7d"
+      }
+    },
+    "region11_dinov2_vits14_224.npz": {
+      "data_sha256": "b0b31434519017c31d38d5090adf92fcbe229ccd61a8f4f330fdbb22190e028e",
+      "metadata_sha256": "f6c8cecf04dd1e37f774ce849f0cdf68a8bf0b332c94257f4c444a2a3cf33574",
+      "model_pin_sha256": "40aea609fb3aa4bf36f45c1878e55b07df66bc79769998268dd2cd1c6e43e428",
+      "rasters_sha256": {
+        "satellite11.tif": "a0f83786793b2670647a6087bc7c4539bfa6c910aa743326b4ef89c0e325d391"
+      }
+    }
+  },
+  "feature_pairs": [
+    {
+      "features_csv_sha256": "a526a3111e678bd4a9a3908b50aba267785e37d2f0c1a8da2580d703f1ada7e5",
+      "embeddings_npz_sha256": "d1252db57ee4abdd6b348b8d2805922d6c9b17094432a26d07a53f1105004e5f"
+    }
+  ],
+  "dataset_manifest": {
+    "original_sha256": "4127fc823b6df2dcc6aac0586c2754d03ccad52b530b1d43bb33b1d60aab2708",
+    "semantic_sha256": "6948d9f0469317c0856e7a601b0c35509808e1b75ed31add13027e24763f6e55"
+  }
+}
