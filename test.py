@@ -15,6 +15,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -175,9 +176,11 @@ def main():
                         status['updated_utc']=datetime.now(timezone.utc).isoformat();atomic_json(status_path,status)
                         if (out/'STOP').exists():raise KeyboardInterrupt
                         progress=''
-                        if name.startswith('labels_') and (out/name/'outcomes.csv').exists():
-                            import csv
-                            with (out/name/'outcomes.csv').open(newline='') as f:done=max(0,sum(1 for _ in csv.reader(f))-1)//9
+                        if name.startswith('labels_'):
+                            # Read the append-only log, never the CSV being atomically replaced.
+                            # Windows CSV readers can otherwise deny the writer's rename.
+                            with log.open(encoding='utf-8',errors='replace') as f:
+                                done=len(set(re.findall(r'^\s+(\S+) attempts=9 wall=',f.read(),re.MULTILINE)))
                             status['progress']={'frames_complete':done,'frames_total':n};atomic_json(status_path,status)
                             progress=f' {done}/{n} frames;'
                         print(f'[{name}]{progress} still running; see {log.name}',flush=True)

@@ -89,3 +89,16 @@ Actual cloud RTX 4080 environment/180-attempt equivalence, new production Stage 
 launches, and full-data confirmatory results remain deferred. The Full menu option
 checks the actual 4080 acceptance gate before execution. No cloud instance or new
 Kaggle job was started by this local work.
+
+## Final validation and launch record
+
+The complete verifier finished successfully at source commit `f5fad98`: **9/9 PASS**
+(`build/verify/20261014_234844`). This includes 21 regression tests, all fetched
+regions, byte-identical v3/v4/v5 predictor checks in the original thread environment,
+and 18 live label attempts with identical outcomes and 0.0 m position difference.
+The final replay smoke also completed P0-P6, matched controls and stress checks.
+
+The requested 8% workflow started in a hidden background process on 2026-10-14.
+Its preflight passed 4/4 checks and it entered real-image labelling. The live
+`results/local/run_8pct_seed20261014/status.json` takes precedence over this launch
+snapshot. Completion and scientific acceptance have not yet been claimed.

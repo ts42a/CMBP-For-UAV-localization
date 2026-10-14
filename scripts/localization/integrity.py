@@ -12,6 +12,7 @@ import math
 import os
 import shutil
 import tempfile
+import time
 from pathlib import Path
 
 KEY = ("region", "filename", "variant", "radius_m", "offset_k")
@@ -145,6 +146,18 @@ def validate_outcomes(rows, expected=None, tolerance=100, allow_unlabelled=False
     return seen
 
 
+def replace_with_retry(source, target, attempts=21, delay=0.25):
+    """Keep atomic replacement; tolerate brief Windows sharing/antivirus locks."""
+    for attempt in range(attempts):
+        try:
+            os.replace(source, target)
+            return
+        except PermissionError as exc:
+            if getattr(exc, 'winerror', None) not in (5, 32, 33) or attempt == attempts - 1:
+                raise
+            time.sleep(delay)
+
+
 def atomic_json(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -154,7 +167,7 @@ def atomic_json(path, value):
             json.dump(value, f, indent=2, allow_nan=False)
             f.flush()
             os.fsync(f.fileno())
-        os.replace(temp, path)
+        replace_with_retry(temp, path)
     finally:
         if os.path.exists(temp):
             os.unlink(temp)
@@ -180,7 +193,7 @@ def append_frame_atomic(path, rows, fields):
             writer.writerows(rows)
             f.flush()
             os.fsync(f.fileno())
-        os.replace(temp, path)
+        replace_with_retry(temp, path)
     finally:
         if os.path.exists(temp):
             os.unlink(temp)

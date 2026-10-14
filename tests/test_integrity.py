@@ -77,6 +77,33 @@ class OutcomeTests(unittest.TestCase):
                 with zipfile.ZipFile(z,'w') as f:f.writestr(name,'bad')
                 with self.assertRaises(ValueError):stage_zip(z,Path(d)/'stage','results/full/labels_v1/01/')
 
+    def test_windows_transient_lock_retries_atomic_commit(self):
+        import os
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/'x.csv';p.write_text('key,value\na,1\n')
+            replace=os.replace
+            locked=PermissionError('temporary sharing conflict');locked.winerror=5
+            calls=[]
+            def transient(src,dst):
+                calls.append(1)
+                if len(calls)<3:raise locked
+                replace(src,dst)
+            with patch('integrity.os.replace',side_effect=transient),patch('integrity.time.sleep'):
+                append_frame_atomic(p,[{'key':'b','value':'2'}],['key','value'])
+            self.assertEqual(len(calls),3)
+            self.assertEqual(read_csv(p),[{'key':'a','value':'1'},{'key':'b','value':'2'}])
+
+    def test_windows_persistent_lock_fails_without_data_loss(self):
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/'x.csv';p.write_text('key,value\na,1\n');old=p.read_bytes()
+            locked=PermissionError('persistent lock');locked.winerror=32
+            with patch('integrity.os.replace',side_effect=locked) as replace,patch('integrity.time.sleep'):
+                with self.assertRaises(PermissionError):
+                    append_frame_atomic(p,[{'key':'b','value':'2'}],['key','value'])
+            self.assertEqual(replace.call_count,21)
+            self.assertEqual(p.read_bytes(),old)
+            self.assertEqual(list(Path(d).glob('*.tmp')),[])
+
 
 class FeatureTests(unittest.TestCase):
     def test_key_alignment_and_domains(self):
