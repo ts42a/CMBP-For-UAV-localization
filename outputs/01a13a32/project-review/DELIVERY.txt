@@ -1,0 +1,8 @@
+Repair commit: 1a23a20b3957d3f2b2780ae8967a0d60ce07e742
+Hypotheses commit: b1af20f
+Stage 9 freeze commit: 4cbc5e2
+Full verifier: build/verify/20261014_231124 (9/9 PASS; 13 regression tests)
+Fetched-region source/cache validation: build/verify/20261014_231448 (05,06,10 PASS)
+Cloud code/cache bundle: build/cloud4080; see bundle_manifest.json for hashes.
+Unfinished: replay production integration and 2,000 live comparisons; actual cloud RTX 4080 180-attempt benchmark; seven missing region jobs; typed configuration completion and performance profiling.
+No files deleted; no new full-scale jobs launched.
